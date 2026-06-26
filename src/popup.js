@@ -31,14 +31,21 @@
       input.value = mark.name;
 
       // 提交并锁定（确认 / 失焦 / 点击别处都会触发，committed 防重复）。
+      // 关键：原地把输入框换成静态文本，不调 render() 重建整行——
+      // 否则"点击别处"若落在本行的 ▶/⟳ 上，会在 click 触发前把按钮销毁，
+      // 导致按钮"没反应"。原地替换可保留按钮节点，让其 click 正常触发。
       let committed = false;
       async function commit() {
         if (committed) return;
         committed = true;
         document.removeEventListener('mousedown', onOutside, true);
         const name = input.value.trim() || mark.name;
+        mark.name = name;
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'name';
+        nameDiv.textContent = name;
+        if (input.parentNode) meta.replaceChild(nameDiv, input);
         await storage.setMarkName(currentPageKey, mark.id, name);
-        await render();
       }
       function onOutside(e) {
         if (e.target !== input) commit();
