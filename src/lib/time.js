@@ -15,6 +15,10 @@
     return n + ' ' + unit + (n === 1 ? '' : 's') + ' ago';
   }
 
+  function pad2(n) {
+    return n < 10 ? '0' + n : '' + n;
+  }
+
   function formatRelativeTime(timestamp, now) {
     let diff = now - timestamp;
     if (diff < 0) diff = 0;
@@ -33,5 +37,13 @@
     return sameYear ? base : base + ', ' + d.getFullYear();
   }
 
-  return { formatRelativeTime: formatRelativeTime };
+  function formatDateTime(timestamp, now) {
+    const d = new Date(timestamp);
+    const base = MONTHS[d.getMonth()] + ' ' + d.getDate();
+    const hm = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    const sameYear = d.getFullYear() === new Date(now).getFullYear();
+    return sameYear ? base + ', ' + hm : base + ', ' + d.getFullYear() + ', ' + hm;
+  }
+
+  return { formatRelativeTime: formatRelativeTime, formatDateTime: formatDateTime };
 });

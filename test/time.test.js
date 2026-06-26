@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert');
-const { formatRelativeTime } = require('../src/lib/time.js');
+const { formatRelativeTime, formatDateTime } = require('../src/lib/time.js');
 
 const NOW = new Date(2026, 5, 26, 12, 0, 0).getTime(); // 本地 2026-06-26 12:00
 const sec = 1000, min = 60 * sec, hour = 60 * min, day = 24 * hour;
@@ -30,10 +30,25 @@ test('≥7 天，同年 → 月日（Jun 19）', () => {
 });
 
 test('≥7 天，跨年 → 月日加年', () => {
-  const ts = new Date(2025, 5, 12).getTime(); // 本地 2025-06-12
+  const ts = new Date(2025, 5, 12).getTime();
   assert.strictEqual(formatRelativeTime(ts, NOW), 'Jun 12, 2025');
 });
 
 test('未来时间（时钟漂移）当作 just now', () => {
   assert.strictEqual(formatRelativeTime(NOW + 10 * sec, NOW), 'just now');
+});
+
+test('formatDateTime 同年 → 月日, 时:分', () => {
+  const ts = new Date(2026, 5, 12, 14, 30).getTime();
+  assert.strictEqual(formatDateTime(ts, NOW), 'Jun 12, 14:30');
+});
+
+test('formatDateTime 跨年 → 月日, 年, 时:分', () => {
+  const ts = new Date(2025, 5, 12, 14, 30).getTime();
+  assert.strictEqual(formatDateTime(ts, NOW), 'Jun 12, 2025, 14:30');
+});
+
+test('formatDateTime 时分零填充', () => {
+  const ts = new Date(2026, 0, 3, 9, 5).getTime();
+  assert.strictEqual(formatDateTime(ts, NOW), 'Jan 3, 09:05');
 });
