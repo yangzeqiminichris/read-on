@@ -2,22 +2,31 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <header>
-    <span class="title">ReadOn</span>
-    <button id="mark-btn">Mark</button>
+    <div class="brand">
+      <span id="brand-icon" class="brand-icon"></span>
+      <span class="title">ReadOn</span>
+    </div>
+    <button id="mark-btn"><span id="mark-icon" class="mark-icon"></span>Mark</button>
   </header>
   <div id="restricted" class="hidden">This page can't be marked.</div>
   <ul id="mark-list"></ul>
-  <div id="empty" class="hidden">No marks on this page yet.</div>
+  <div id="empty" class="hidden">
+    <span id="empty-icon" class="empty-icon"></span>
+    <p>Mark a spot to pick up where you left off.</p>
+  </div>
   <div id="toast" class="toast hidden"></div>
 
   <script src="lib/positioning.js"></script>
   <script src="lib/marks.js"></script>
   <script src="lib/browser.js"></script>
   <script src="lib/storage.js"></script>
+  <script src="lib/time.js"></script>
+  <script src="lib/icons.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
