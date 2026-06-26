@@ -12,7 +12,10 @@
     setTimeout(function () { el.classList.add('hidden'); }, 1500);
   }
 
+  const UNREACHABLE_MSG = "Can't reach this page. Reload it and try again.";
+
   async function capture() {
+    await browser.ensureContentScript(currentTabId);
     return browser.sendMessageToTab(currentTabId, { type: 'READON_CAPTURE' });
   }
 
@@ -26,14 +29,29 @@
       const input = document.createElement('input');
       input.className = 'name-input';
       input.value = mark.name;
-      input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') input.blur();
-      });
-      input.addEventListener('blur', async function () {
+
+      // 提交并锁定（确认 / 失焦 / 点击别处都会触发，committed 防重复）。
+      let committed = false;
+      async function commit() {
+        if (committed) return;
+        committed = true;
+        document.removeEventListener('mousedown', onOutside, true);
         const name = input.value.trim() || mark.name;
         await storage.setMarkName(currentPageKey, mark.id, name);
         await render();
+      }
+      function onOutside(e) {
+        if (e.target !== input) commit();
+      }
+
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === 'Escape') commit();
       });
+      input.addEventListener('blur', commit);
+      // popup 里输入框 blur 不一定可靠，用捕获阶段的全局 mousedown 兜底，
+      // 保证"点击别处"一定收起编辑态。
+      document.addEventListener('mousedown', onOutside, true);
+
       meta.appendChild(input);
       setTimeout(function () { input.focus(); input.select(); }, 0);
     } else {
@@ -55,8 +73,13 @@
     jump.textContent = '▶';
     jump.title = 'Jump to this mark';
     jump.onclick = async function () {
-      await browser.sendMessageToTab(currentTabId, { type: 'READON_SCROLL_TO', mark: mark });
-      window.close();
+      try {
+        await browser.ensureContentScript(currentTabId);
+        await browser.sendMessageToTab(currentTabId, { type: 'READON_SCROLL_TO', mark: mark });
+        window.close();
+      } catch (e) {
+        showToast(UNREACHABLE_MSG);
+      }
     };
     li.appendChild(jump);
 
@@ -64,10 +87,14 @@
     upd.textContent = '⟳';
     upd.title = "Update this mark's position";
     upd.onclick = async function () {
-      const snap = await capture();
-      await storage.updateMarkPosition(currentPageKey, mark.id, snap, Date.now());
-      await render();
-      showToast('Position updated');
+      try {
+        const snap = await capture();
+        await storage.updateMarkPosition(currentPageKey, mark.id, snap, Date.now());
+        await render();
+        showToast('Position updated');
+      } catch (e) {
+        showToast(UNREACHABLE_MSG);
+      }
     };
     li.appendChild(upd);
 
@@ -85,7 +112,13 @@
   }
 
   async function onMark() {
-    const snap = await capture();
+    let snap;
+    try {
+      snap = await capture();
+    } catch (e) {
+      showToast(UNREACHABLE_MSG);
+      return;
+    }
     const mark = await storage.saveMark(currentPageKey, {
       snapshot: snap, id: crypto.randomUUID(), now: Date.now(),
     });

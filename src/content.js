@@ -1,5 +1,8 @@
 (function () {
   'use strict';
+  // 防止重复注入（声明式 + 按需注入）导致重复注册监听。
+  if (window.__READON_CONTENT_LOADED__) return;
+  window.__READON_CONTENT_LOADED__ = true;
   const P = window.ReadOn.positioning;
 
   // 候选元素：含有可读文字的常见块级元素。
@@ -65,6 +68,10 @@
   }
 
   chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+    if (msg && msg.type === 'READON_PING') {
+      sendResponse({ ok: true });
+      return true;
+    }
     if (msg && msg.type === 'READON_CAPTURE') {
       sendResponse(snapshot());
       return true;

@@ -3,7 +3,7 @@
   "name": "ReadOn",
   "version": "0.1.0",
   "description": "Bookmark a scroll position on any page and pick up reading where you left off.",
-  "permissions": ["storage", "tabs"],
+  "permissions": ["storage", "tabs", "scripting", "activeTab"],
   "action": {
     "default_popup": "src/popup.html",
     "default_title": "ReadOn"
