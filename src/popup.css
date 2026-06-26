@@ -1,21 +1,137 @@
-body { width: 320px; margin: 0; font: 13px/1.4 system-ui, sans-serif; color: #1a1a1a; }
-header { display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 12px; border-bottom: 1px solid #eee; }
-.title { font-weight: 600; }
-#mark-btn { font: inherit; padding: 4px 12px; border: 1px solid #2563eb;
-  background: #2563eb; color: #fff; border-radius: 6px; cursor: pointer; }
+* { box-sizing: border-box; }
+
+body {
+  width: 332px;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--bg);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 15px;
+}
+.brand { display: flex; align-items: center; gap: 8px; }
+.brand-icon { display: inline-flex; color: var(--accent); }
+.title { font-weight: 500; font-size: 15px; }
+
+#mark-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent-on);
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-button);
+  padding: 7px 13px;
+  cursor: pointer;
+}
+.mark-icon { display: inline-flex; }
+#mark-btn:hover { background: var(--accent-hover); }
+#mark-btn:active { transform: scale(0.98); }
 #mark-btn:disabled { opacity: .5; cursor: default; }
-ul { list-style: none; margin: 0; padding: 0; }
-li { display: flex; align-items: center; gap: 8px; padding: 8px 12px;
-  border-bottom: 1px solid #f3f3f3; }
-li .meta { flex: 1; min-width: 0; }
-li .name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-li .name-input { font: inherit; width: 100%; box-sizing: border-box; }
-li .pct { color: #888; font-size: 12px; }
-li button { font: inherit; border: none; background: none; cursor: pointer;
-  padding: 4px; border-radius: 4px; }
-li button:hover { background: #f0f0f0; }
+
+ul#mark-list { list-style: none; margin: 0; padding: 0 9px 10px; }
+
+.mark-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 11px 13px;
+  margin-top: 8px;
+}
+.mark-row:first-child { margin-top: 4px; }
+.mark-row:hover { background: var(--row-hover); }
+
+.meta { flex: 1; min-width: 0; }
+.row-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.name {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.name-input {
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 2px 6px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+.time {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.bar-row { display: flex; align-items: center; gap: 8px; }
+.track {
+  flex: 1;
+  height: 4px;
+  background: var(--track);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.fill { height: 100%; background: var(--accent); border-radius: var(--radius-pill); }
+.pct {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 26px;
+  text-align: right;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+}
+.icon-btn:hover { background: var(--track); }
+.icon-btn.jump { color: var(--accent); }
+.icon-btn.update { color: var(--text-muted); }
+
+#restricted { padding: 20px 15px; text-align: center; color: var(--text-secondary); }
+#empty { padding: 24px 15px; text-align: center; }
+.empty-icon { display: inline-flex; color: var(--text-muted); }
+#empty p { margin: 8px 0 0; color: var(--text-secondary); font-size: 12px; }
+
 .hidden { display: none; }
-#restricted, #empty { padding: 16px 12px; color: #888; text-align: center; }
-.toast { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%);
-  background: #1a1a1a; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  padding: 6px 12px;
+  border-radius: var(--radius-button);
+  font-size: 12px;
+}
