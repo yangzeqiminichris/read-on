@@ -67,7 +67,8 @@
 
 - 间距阶：`--space-1: 4px` / `--space-2: 8px` / `--space-3: 12px` / `--space-4: 16px`。
 - 圆角：`--radius-button: 9px` / `--radius-card: 11px` / `--radius-popup: 14px` / `--radius-pill: 99px`。
-- 弹窗宽度：**340px**（原 320px）。
+- 弹窗宽度：**332px**（原 320px）——取浅/深双主题精修稿那版的舒适比例（非时间稿的 340px）。
+- 间距/留白以双主题精修稿为准：头部 padding `13px 15px`、行卡片 padding `11px 13px`、行间距 8px、列表外距 `0 9px 10px`。
 
 ## 4. 组件规范
 
