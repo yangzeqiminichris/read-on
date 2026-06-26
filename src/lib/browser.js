@@ -43,5 +43,16 @@
     });
   }
 
-  return { storageGet, storageSet, getActiveTab, sendMessageToTab, ensureContentScript };
+  async function storageRemove(key) {
+    return chrome.storage.local.remove(key);
+  }
+
+  async function navigateTab(tabId, url) {
+    return chrome.tabs.update(tabId, { url: url });
+  }
+
+  return {
+    storageGet, storageSet, getActiveTab, sendMessageToTab, ensureContentScript,
+    storageRemove, navigateTab,
+  };
 });
