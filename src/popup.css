@@ -42,6 +42,7 @@ header {
 ul#mark-list { list-style: none; margin: 0; padding: 0 9px 10px; }
 
 .mark-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -50,6 +51,19 @@ ul#mark-list { list-style: none; margin: 0; padding: 0 9px 10px; }
   border-radius: var(--radius-card);
   padding: 11px 13px;
   margin-top: 8px;
+}
+.row-toast {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: color-mix(in srgb, var(--accent) 85%, transparent);
+  color: var(--accent-on);
+  padding: 5px 12px;
+  border-radius: var(--radius-button);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .mark-row:first-child { margin-top: 4px; }
 .mark-row:hover { background: var(--row-hover); }

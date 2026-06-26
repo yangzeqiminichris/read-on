@@ -14,6 +14,17 @@
     setTimeout(function () { el.classList.add('hidden'); }, 1500);
   }
 
+  // 浮在指定 mark 行正中的轻提示（用于"位置已更新"确认）。
+  function showRowToast(markId, text) {
+    const row = document.querySelector('.mark-row[data-mark-id="' + markId + '"]');
+    if (!row) return;
+    const t = document.createElement('div');
+    t.className = 'row-toast';
+    t.textContent = text;
+    row.appendChild(t);
+    setTimeout(function () { t.remove(); }, 1500);
+  }
+
   async function capture() {
     await browser.ensureContentScript(currentTabId);
     return browser.sendMessageToTab(currentTabId, { type: 'READON_CAPTURE' });
@@ -31,6 +42,7 @@
   function renderRow(mark, editing) {
     const li = document.createElement('li');
     li.className = 'mark-row';
+    li.dataset.markId = mark.id;
 
     const meta = document.createElement('div');
     meta.className = 'meta';
@@ -118,7 +130,7 @@
         const snap = await capture();
         await storage.updateMarkPosition(currentPageKey, mark.id, snap, Date.now());
         await render();
-        showToast('Position updated');
+        showRowToast(mark.id, 'Position updated');
       } catch (e) {
         showToast(UNREACHABLE_MSG);
       }

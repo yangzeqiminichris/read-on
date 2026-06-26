@@ -81,7 +81,8 @@
   - 第一行：行名（左，13px/500，溢出省略）+ 创建时间（右，11px，`--text-muted`，不换行）。
   - 第二行：进度条（flex:1，高 4px，底 `--track`，填充 `--accent`，`--radius-pill`）+ 百分比（11px，`--text-muted`，min-width 26px）。
 - **就地改名输入框**：复用行卡片位置，输入框 `font:inherit`，宽度撑满，`border:1px solid var(--accent)`，圆角 6px。提交行为同 MVP（Enter / 失焦 / 点击别处，原地替换为文本——保留 MVP 已修复的交互）。
-- **toast**：底部居中，`background: var(--accent)`，`color: var(--accent-on)`（赤陶主色，贴合暖色调），11–12px，圆角 `--radius-button`，1.5s 自动消失。
+- **行内确认 toast（`.row-toast`）**：用于"Position updated"，浮在被更新的那条 mark 行**正中**（`position:absolute; top/left:50%; translate(-50%,-50%)`），背景 `color-mix(in srgb, var(--accent) 85%, transparent)`（赤陶半透明），`color: var(--accent-on)`，`pointer-events:none`，1.5s 自动消失。行卡片需 `position:relative`。
+- **全局错误 toast（`#toast`）**：用于"打不开页面"等非行级错误，底部居中，`background: var(--accent)`，`color: var(--accent-on)`，1.5s 自动消失。
 - **空状态**：居中，`bookmark-plus` 图标（28px，`--text-muted`）+ 一行邀请文案 "Mark a spot to pick up where you left off."（`--text-secondary`）。
 - **受限页状态**：居中灰字 "This page can't be marked."，Mark 按钮置灰。
 
