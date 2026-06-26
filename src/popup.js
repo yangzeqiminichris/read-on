@@ -43,15 +43,8 @@
     const detail = document.createElement('div');
     detail.className = 'row-detail';
 
-    const metaLine = document.createElement('div');
-    metaLine.className = 'detail-meta';
-    let metaText = 'Created ' + time.formatDateTime(mark.createdAt, Date.now());
-    if (mark.updatedAt !== mark.createdAt) {
-      metaText += ' · Updated ' + time.formatRelativeTime(mark.updatedAt, Date.now());
-    }
-    metaLine.textContent = metaText;
-    detail.appendChild(metaLine);
-
+    const noteWrap = document.createElement('div');
+    noteWrap.className = 'note-wrap';
     const note = document.createElement('textarea');
     note.className = 'note-input';
     note.placeholder = 'Add a note…';
@@ -62,18 +55,26 @@
       mark.note = value;
       await storage.setNote(currentPageKey, mark.id, value);
     });
-    detail.appendChild(note);
+    noteWrap.appendChild(note);
+    detail.appendChild(noteWrap);
 
     const del = document.createElement('div');
     del.className = 'row-delete';
 
+    async function doDelete() {
+      await storage.deleteMark(currentPageKey, mark.id);
+      expandedIds.delete(mark.id);
+      await render();
+    }
+
     function renderDeleteDefault() {
       del.innerHTML = '';
-      const btn = document.createElement('button');
-      btn.className = 'danger-btn ghost';
-      btn.appendChild(icons.el('trash-2', 14));
-      btn.appendChild(document.createTextNode('Delete'));
-      btn.onclick = renderDeleteConfirm;
+      const btn = makeIconButton('trash-2', 'delete', 'Delete this mark');
+      btn.onclick = function () {
+        // 有笔记才二次确认；无笔记直接删。
+        if (mark.note && mark.note.trim()) renderDeleteConfirm();
+        else doDelete();
+      };
       del.appendChild(btn);
     }
 
@@ -89,11 +90,7 @@
       const confirm = document.createElement('button');
       confirm.className = 'danger-btn solid';
       confirm.textContent = 'Delete';
-      confirm.onclick = async function () {
-        await storage.deleteMark(currentPageKey, mark.id);
-        expandedIds.delete(mark.id);
-        await render();
-      };
+      confirm.onclick = doDelete;
       del.appendChild(q);
       del.appendChild(cancel);
       del.appendChild(confirm);
@@ -123,7 +120,7 @@
 
     const timeEl = document.createElement('span');
     timeEl.className = 'time';
-    timeEl.textContent = time.formatRelativeTime(mark.createdAt, Date.now());
+    timeEl.textContent = time.formatRelativeTime(mark.updatedAt, Date.now());
 
     if (editing) {
       const input = document.createElement('input');
