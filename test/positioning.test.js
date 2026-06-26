@@ -52,3 +52,17 @@ test('pickNearestAnchor 空数组返回 null', () => {
   assert.strictEqual(P.pickNearestAnchor([], 500), null);
   assert.strictEqual(P.pickNearestAnchor(undefined, 500), null);
 });
+
+test('refineTargetWithAnchors 锚点在阈值内则用锚点精确定位', () => {
+  // 目标 2631，最近锚点 2700，差 69 < 1271 → 用 2700
+  assert.strictEqual(P.refineTargetWithAnchors(2631, [100, 2700, 5000], 1271), 2700);
+});
+
+test('refineTargetWithAnchors 锚点离目标太远则退回纯比例（修复固定头部 bug）', () => {
+  // 目标 2631，锚点全在顶部 0（粘性头部），差 2631 > 1271 → 退回 2631
+  assert.strictEqual(P.refineTargetWithAnchors(2631, [0, 0, 0], 1271), 2631);
+});
+
+test('refineTargetWithAnchors 无锚点时退回纯比例', () => {
+  assert.strictEqual(P.refineTargetWithAnchors(2631, [], 1271), 2631);
+});
