@@ -62,7 +62,28 @@
     await browser.storageSet({ [pageKey]: Object.assign({}, pageData, { marks: updated }) });
   }
 
+  async function getAllPageData() {
+    return browser.storageGet(null);
+  }
+
+  const PENDING_KEY = '_readon_pending_jump';
+
+  async function setPendingJump(pageKey, mark, now) {
+    const ts = (now === undefined) ? Date.now() : now;
+    await browser.storageSet({ [PENDING_KEY]: { pageKey: pageKey, mark: mark, ts: ts } });
+  }
+
+  async function getPendingJump() {
+    const data = await browser.storageGet([PENDING_KEY]);
+    return data[PENDING_KEY] || null;
+  }
+
+  async function clearPendingJump() {
+    await browser.storageRemove(PENDING_KEY);
+  }
+
   return {
     getPageData, saveMark, updateMarkPosition, setMarkName, deleteMark, setNote,
+    getAllPageData, setPendingJump, getPendingJump, clearPendingJump,
   };
 });
