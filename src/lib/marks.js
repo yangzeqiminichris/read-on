@@ -57,5 +57,29 @@
     };
   }
 
-  return { pageKeyFromURL, makeDefaultName, emptyPageData, createMark, removeMark };
+  // 把整个 storage 对象（{[pageKey]: pageData}，可能混入非 pageData 键）整理成
+  // 按页面分组、组内 createdAt 升序、组间最近活动(组内 max updatedAt)倒序的数组。
+  function groupMarksByPage(allData) {
+    const groups = [];
+    for (const key in allData) {
+      const pd = allData[key];
+      if (!pd || !Array.isArray(pd.marks) || pd.marks.length === 0) continue;
+      const sorted = pd.marks.slice().sort(function (a, b) { return a.createdAt - b.createdAt; });
+      let recent = sorted[0];
+      for (const m of sorted) if (m.updatedAt > recent.updatedAt) recent = m;
+      groups.push({
+        pageKey: pd.pageKey,
+        pageTitle: recent.pageTitle,
+        pageURL: recent.pageURL,
+        marks: sorted,
+        lastActivity: recent.updatedAt,
+      });
+    }
+    groups.sort(function (a, b) { return b.lastActivity - a.lastActivity; });
+    return groups;
+  }
+
+  return {
+    pageKeyFromURL, makeDefaultName, emptyPageData, createMark, removeMark, groupMarksByPage,
+  };
 });
