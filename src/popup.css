@@ -52,7 +52,11 @@ ul#mark-list { list-style: none; margin: 0; padding: 0 9px 10px; }
   margin-top: 8px;
 }
 .mark-row:first-child { margin-top: 4px; }
-.mark-row:hover { background: var(--row-hover); }
+.mark-row:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 20%, transparent),
+              0 2px 8px color-mix(in srgb, var(--text) 10%, transparent);
+}
 
 .row-main { display: flex; align-items: center; gap: 10px; }
 
@@ -130,12 +134,12 @@ ul#mark-list { list-style: none; margin: 0; padding: 0 9px 10px; }
   padding-top: 10px;
 }
 .note-wrap {
-  background: var(--bg);
+  background: var(--field);
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
 }
-.note-wrap:focus-within { border-color: var(--text-secondary); }
+.note-wrap:focus-within { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
 .note-input {
   display: block;
   width: 100%;
