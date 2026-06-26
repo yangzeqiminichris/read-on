@@ -4,6 +4,7 @@
 
   let currentPageKey = null;
   let currentTabId = null;
+  const expandedIds = new Set();
 
   const UNREACHABLE_MSG = "Can't reach this page. Reload it and try again.";
 
@@ -14,7 +15,6 @@
     setTimeout(function () { el.classList.add('hidden'); }, 1500);
   }
 
-  // 浮在指定 mark 行正中的轻提示（用于"位置已更新"确认）。
   function showRowToast(markId, text) {
     const row = document.querySelector('.mark-row[data-mark-id="' + markId + '"]');
     if (!row) return;
@@ -39,10 +39,81 @@
     return btn;
   }
 
+  function buildDetail(mark) {
+    const detail = document.createElement('div');
+    detail.className = 'row-detail';
+
+    const metaLine = document.createElement('div');
+    metaLine.className = 'detail-meta';
+    let metaText = 'Created ' + time.formatDateTime(mark.createdAt, Date.now());
+    if (mark.updatedAt !== mark.createdAt) {
+      metaText += ' · Updated ' + time.formatRelativeTime(mark.updatedAt, Date.now());
+    }
+    metaLine.textContent = metaText;
+    detail.appendChild(metaLine);
+
+    const note = document.createElement('textarea');
+    note.className = 'note-input';
+    note.placeholder = 'Add a note…';
+    note.value = mark.note || '';
+    note.addEventListener('blur', async function () {
+      const value = note.value;
+      if (value === (mark.note || '')) return;
+      mark.note = value;
+      await storage.setNote(currentPageKey, mark.id, value);
+    });
+    detail.appendChild(note);
+
+    const del = document.createElement('div');
+    del.className = 'row-delete';
+
+    function renderDeleteDefault() {
+      del.innerHTML = '';
+      const btn = document.createElement('button');
+      btn.className = 'danger-btn ghost';
+      btn.appendChild(icons.el('trash-2', 14));
+      btn.appendChild(document.createTextNode('Delete'));
+      btn.onclick = renderDeleteConfirm;
+      del.appendChild(btn);
+    }
+
+    function renderDeleteConfirm() {
+      del.innerHTML = '';
+      const q = document.createElement('span');
+      q.className = 'delete-q';
+      q.textContent = 'Delete this mark?';
+      const cancel = document.createElement('button');
+      cancel.className = 'ghost-btn';
+      cancel.textContent = 'Cancel';
+      cancel.onclick = renderDeleteDefault;
+      const confirm = document.createElement('button');
+      confirm.className = 'danger-btn solid';
+      confirm.textContent = 'Delete';
+      confirm.onclick = async function () {
+        await storage.deleteMark(currentPageKey, mark.id);
+        expandedIds.delete(mark.id);
+        await render();
+      };
+      del.appendChild(q);
+      del.appendChild(cancel);
+      del.appendChild(confirm);
+    }
+
+    renderDeleteDefault();
+    detail.appendChild(del);
+
+    return detail;
+  }
+
   function renderRow(mark, editing) {
     const li = document.createElement('li');
     li.className = 'mark-row';
     li.dataset.markId = mark.id;
+    const expanded = expandedIds.has(mark.id);
+    if (expanded) li.classList.add('expanded');
+
+    const main = document.createElement('div');
+    main.className = 'row-main';
 
     const meta = document.createElement('div');
     meta.className = 'meta';
@@ -84,10 +155,20 @@
       top.appendChild(timeEl);
       setTimeout(function () { input.focus(); input.select(); }, 0);
     } else {
+      const nameWrap = document.createElement('span');
+      nameWrap.className = 'name-wrap';
       const nameSpan = document.createElement('span');
       nameSpan.className = 'name';
       nameSpan.textContent = mark.name;
-      top.appendChild(nameSpan);
+      nameWrap.appendChild(nameSpan);
+      if (!expanded && mark.note) {
+        const flag = document.createElement('span');
+        flag.className = 'name-note-flag';
+        flag.title = 'Has note';
+        flag.appendChild(icons.el('square-pen', 12));
+        nameWrap.appendChild(flag);
+      }
+      top.appendChild(nameWrap);
       top.appendChild(timeEl);
     }
     meta.appendChild(top);
@@ -110,7 +191,7 @@
     barRow.appendChild(pct);
     meta.appendChild(barRow);
 
-    li.appendChild(meta);
+    main.appendChild(meta);
 
     const jump = makeIconButton('play', 'jump', 'Jump to this mark');
     jump.onclick = async function () {
@@ -122,7 +203,7 @@
         showToast(UNREACHABLE_MSG);
       }
     };
-    li.appendChild(jump);
+    main.appendChild(jump);
 
     const upd = makeIconButton('rotate-cw', 'update', "Update this mark's position");
     upd.onclick = async function () {
@@ -135,7 +216,18 @@
         showToast(UNREACHABLE_MSG);
       }
     };
-    li.appendChild(upd);
+    main.appendChild(upd);
+
+    const exp = makeIconButton('chevron-down', 'expand', expanded ? 'Collapse' : 'Expand');
+    exp.onclick = async function () {
+      if (expandedIds.has(mark.id)) expandedIds.delete(mark.id);
+      else expandedIds.add(mark.id);
+      await render();
+    };
+    main.appendChild(exp);
+
+    li.appendChild(main);
+    if (expanded) li.appendChild(buildDetail(mark));
 
     return li;
   }
@@ -161,7 +253,7 @@
     const mark = await storage.saveMark(currentPageKey, {
       snapshot: snap, id: crypto.randomUUID(), now: Date.now(),
     });
-    await render(mark.id); // 新行进入改名编辑态
+    await render(mark.id);
   }
 
   function mountStaticIcons() {
