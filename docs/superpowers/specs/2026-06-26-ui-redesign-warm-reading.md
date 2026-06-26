@@ -67,7 +67,7 @@
 
 - 间距阶：`--space-1: 4px` / `--space-2: 8px` / `--space-3: 12px` / `--space-4: 16px`。
 - 圆角：`--radius-button: 9px` / `--radius-card: 11px` / `--radius-popup: 14px` / `--radius-pill: 99px`。
-- 弹窗宽度：**332px**（原 320px）——取浅/深双主题精修稿那版的舒适比例（非时间稿的 340px）。
+- 弹窗宽度：**350px**（原 320px）。
 - 间距/留白以双主题精修稿为准：头部 padding `13px 15px`、行卡片 padding `11px 13px`、行间距 8px、列表外距 `0 9px 10px`。
 
 ## 4. 组件规范
@@ -81,7 +81,7 @@
   - 第一行：行名（左，13px/500，溢出省略）+ 创建时间（右，11px，`--text-muted`，不换行）。
   - 第二行：进度条（flex:1，高 4px，底 `--track`，填充 `--accent`，`--radius-pill`）+ 百分比（11px，`--text-muted`，min-width 26px）。
 - **就地改名输入框**：复用行卡片位置，输入框 `font:inherit`，宽度撑满，`border:1px solid var(--accent)`，圆角 6px。提交行为同 MVP（Enter / 失焦 / 点击别处，原地替换为文本——保留 MVP 已修复的交互）。
-- **toast**：底部居中，`background: var(--text)`，`color: var(--bg)`，11–12px，圆角 `--radius-button`，1.5s 自动消失。
+- **toast**：底部居中，`background: var(--accent)`，`color: var(--accent-on)`（赤陶主色，贴合暖色调），11–12px，圆角 `--radius-button`，1.5s 自动消失。
 - **空状态**：居中，`bookmark-plus` 图标（28px，`--text-muted`）+ 一行邀请文案 "Mark a spot to pick up where you left off."（`--text-secondary`）。
 - **受限页状态**：居中灰字 "This page can't be marked."，Mark 按钮置灰。
 
