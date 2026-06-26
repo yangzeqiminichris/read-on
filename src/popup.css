@@ -1,0 +1,21 @@
+body { width: 320px; margin: 0; font: 13px/1.4 system-ui, sans-serif; color: #1a1a1a; }
+header { display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border-bottom: 1px solid #eee; }
+.title { font-weight: 600; }
+#mark-btn { font: inherit; padding: 4px 12px; border: 1px solid #2563eb;
+  background: #2563eb; color: #fff; border-radius: 6px; cursor: pointer; }
+#mark-btn:disabled { opacity: .5; cursor: default; }
+ul { list-style: none; margin: 0; padding: 0; }
+li { display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  border-bottom: 1px solid #f3f3f3; }
+li .meta { flex: 1; min-width: 0; }
+li .name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+li .name-input { font: inherit; width: 100%; box-sizing: border-box; }
+li .pct { color: #888; font-size: 12px; }
+li button { font: inherit; border: none; background: none; cursor: pointer;
+  padding: 4px; border-radius: 4px; }
+li button:hover { background: #f0f0f0; }
+.hidden { display: none; }
+#restricted, #empty { padding: 16px 12px; color: #888; text-align: center; }
+.toast { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%);
+  background: #1a1a1a; color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; }
