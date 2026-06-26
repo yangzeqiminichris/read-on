@@ -121,7 +121,7 @@ ul#mark-list { list-style: none; margin: 0; padding: 0 9px 10px; }
   padding: 4px;
   border-radius: 6px;
 }
-.icon-btn:hover { background: var(--track); }
+.icon-btn:hover { background: var(--row-hover); }
 .icon-btn.jump { color: var(--accent); }
 .icon-btn.update { color: var(--text-muted); }
 .icon-btn.expand { color: var(--text-muted); }
