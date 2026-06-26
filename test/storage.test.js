@@ -1,7 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert');
 
-// ——内存版 chrome.storage.local mock——
 function installFakeChrome() {
   const store = {};
   global.chrome = {
@@ -69,4 +68,33 @@ test('setMarkName 只改名字', async () => {
   await storage.saveMark('x.com/a', { snapshot: snap, id: 'id1', now: 1 });
   await storage.setMarkName('x.com/a', 'id1', 'Chapter 2');
   assert.strictEqual(store['x.com/a'].marks[0].name, 'Chapter 2');
+});
+
+test('deleteMark 删除指定 mark，nextSeq 不变（不复用）', async () => {
+  const store = installFakeChrome();
+  await storage.saveMark('x.com/a', { snapshot: snap, id: 'a', now: 1 });
+  await storage.saveMark('x.com/a', { snapshot: snap, id: 'b', now: 2 });
+  await storage.deleteMark('x.com/a', 'a');
+  assert.strictEqual(store['x.com/a'].marks.length, 1);
+  assert.strictEqual(store['x.com/a'].marks[0].id, 'b');
+  assert.strictEqual(store['x.com/a'].nextSeq, 3);
+});
+
+test('setNote 只改 note，不动 name/createdAt/updatedAt', async () => {
+  const store = installFakeChrome();
+  await storage.saveMark('x.com/a', { name: 'Keep', snapshot: snap, id: 'id1', now: 100 });
+  await storage.setNote('x.com/a', 'id1', 'my note');
+  const m = store['x.com/a'].marks[0];
+  assert.strictEqual(m.note, 'my note');
+  assert.strictEqual(m.name, 'Keep');
+  assert.strictEqual(m.createdAt, 100);
+  assert.strictEqual(m.updatedAt, 100);
+});
+
+test('setNote 可清空笔记', async () => {
+  const store = installFakeChrome();
+  await storage.saveMark('x.com/a', { snapshot: snap, id: 'id1', now: 1 });
+  await storage.setNote('x.com/a', 'id1', 'x');
+  await storage.setNote('x.com/a', 'id1', '');
+  assert.strictEqual(store['x.com/a'].marks[0].note, '');
 });

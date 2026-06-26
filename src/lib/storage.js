@@ -48,5 +48,21 @@
     await browser.storageSet({ [pageKey]: Object.assign({}, pageData, { marks: updated }) });
   }
 
-  return { getPageData, saveMark, updateMarkPosition, setMarkName };
+  async function deleteMark(pageKey, markId) {
+    const pageData = await getPageData(pageKey);
+    const next = marks.removeMark(pageData, markId);
+    await browser.storageSet({ [pageKey]: next });
+  }
+
+  async function setNote(pageKey, markId, note) {
+    const pageData = await getPageData(pageKey);
+    const updated = pageData.marks.map(function (m) {
+      return m.id === markId ? Object.assign({}, m, { note: note }) : m;
+    });
+    await browser.storageSet({ [pageKey]: Object.assign({}, pageData, { marks: updated }) });
+  }
+
+  return {
+    getPageData, saveMark, updateMarkPosition, setMarkName, deleteMark, setNote,
+  };
 });
