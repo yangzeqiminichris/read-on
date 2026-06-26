@@ -45,30 +45,16 @@ ul#mark-list { list-style: none; margin: 0; padding: 0 9px 10px; }
 
 .mark-row {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   padding: 11px 13px;
   margin-top: 8px;
 }
-.row-toast {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: color-mix(in srgb, var(--accent) 85%, transparent);
-  color: var(--accent-on);
-  padding: 5px 12px;
-  border-radius: var(--radius-button);
-  font-size: 12px;
-  white-space: nowrap;
-  pointer-events: none;
-}
 .mark-row:first-child { margin-top: 4px; }
 .mark-row:hover { background: var(--row-hover); }
+
+.row-main { display: flex; align-items: center; gap: 10px; }
 
 .meta { flex: 1; min-width: 0; }
 .row-top {
@@ -78,6 +64,7 @@ ul#mark-list { list-style: none; margin: 0; padding: 0 9px 10px; }
   gap: 8px;
   margin-bottom: 8px;
 }
+.name-wrap { display: flex; align-items: center; gap: 5px; min-width: 0; }
 .name {
   font-size: 13px;
   font-weight: 500;
@@ -85,6 +72,7 @@ ul#mark-list { list-style: none; margin: 0; padding: 0 9px 10px; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.name-note-flag { display: inline-flex; color: var(--text-muted); flex-shrink: 0; }
 .name-input {
   flex: 1;
   min-width: 0;
@@ -132,6 +120,62 @@ ul#mark-list { list-style: none; margin: 0; padding: 0 9px 10px; }
 .icon-btn:hover { background: var(--track); }
 .icon-btn.jump { color: var(--accent); }
 .icon-btn.update { color: var(--text-muted); }
+.icon-btn.expand { color: var(--text-muted); }
+.icon-btn.expand svg { transition: transform .15s ease; }
+.mark-row.expanded .icon-btn.expand svg { transform: rotate(180deg); }
+
+.row-detail {
+  border-top: 1px solid var(--border);
+  margin-top: 11px;
+  padding-top: 10px;
+}
+.detail-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+.note-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 9px;
+  resize: none;
+  min-height: 48px;
+  max-height: 140px;
+  overflow: auto;
+}
+.note-input:focus { outline: none; border-color: var(--accent); }
+
+.row-delete {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+.delete-q { font-size: 12px; color: var(--text-secondary); }
+.danger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: inherit;
+  font-size: 12px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.danger-btn.ghost { background: none; border: none; color: var(--danger); padding: 4px 6px; }
+.danger-btn.solid { background: var(--danger); color: var(--danger-on); border: none; padding: 3px 10px; }
+.ghost-btn {
+  font-family: inherit;
+  font-size: 12px;
+  background: none;
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  border-radius: 7px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
 
 #restricted { padding: 20px 15px; text-align: center; color: var(--text-secondary); }
 #empty { padding: 24px 15px; text-align: center; }
@@ -150,4 +194,18 @@ ul#mark-list { list-style: none; margin: 0; padding: 0 9px 10px; }
   padding: 6px 12px;
   border-radius: var(--radius-button);
   font-size: 12px;
+}
+
+.row-toast {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: color-mix(in srgb, var(--accent) 85%, transparent);
+  color: var(--accent-on);
+  padding: 5px 12px;
+  border-radius: var(--radius-button);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
 }
