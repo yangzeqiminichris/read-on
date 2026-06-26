@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "ReadOn",
+  "version": "0.1.0",
+  "description": "Bookmark a scroll position on any page and pick up reading where you left off.",
+  "permissions": ["storage", "tabs"],
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_title": "ReadOn"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["src/lib/positioning.js", "src/content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
