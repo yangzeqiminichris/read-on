@@ -1,9 +1,11 @@
 (function () {
   'use strict';
-  const { browser, storage, marks, positioning } = window.ReadOn;
+  const { browser, storage, marks, positioning, time, icons } = window.ReadOn;
 
   let currentPageKey = null;
   let currentTabId = null;
+
+  const UNREACHABLE_MSG = "Can't reach this page. Reload it and try again.";
 
   function showToast(text) {
     const el = document.getElementById('toast');
@@ -12,28 +14,39 @@
     setTimeout(function () { el.classList.add('hidden'); }, 1500);
   }
 
-  const UNREACHABLE_MSG = "Can't reach this page. Reload it and try again.";
-
   async function capture() {
     await browser.ensureContentScript(currentTabId);
     return browser.sendMessageToTab(currentTabId, { type: 'READON_CAPTURE' });
   }
 
+  function makeIconButton(iconId, className, label) {
+    const btn = document.createElement('button');
+    btn.className = 'icon-btn ' + className;
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
+    btn.appendChild(icons.el(iconId, 16));
+    return btn;
+  }
+
   function renderRow(mark, editing) {
     const li = document.createElement('li');
+    li.className = 'mark-row';
 
     const meta = document.createElement('div');
     meta.className = 'meta';
+
+    const top = document.createElement('div');
+    top.className = 'row-top';
+
+    const timeEl = document.createElement('span');
+    timeEl.className = 'time';
+    timeEl.textContent = time.formatRelativeTime(mark.createdAt, Date.now());
 
     if (editing) {
       const input = document.createElement('input');
       input.className = 'name-input';
       input.value = mark.name;
 
-      // 提交并锁定（确认 / 失焦 / 点击别处都会触发，committed 防重复）。
-      // 关键：原地把输入框换成静态文本，不调 render() 重建整行——
-      // 否则"点击别处"若落在本行的 ▶/⟳ 上，会在 click 触发前把按钮销毁，
-      // 导致按钮"没反应"。原地替换可保留按钮节点，让其 click 正常触发。
       let committed = false;
       async function commit() {
         if (committed) return;
@@ -41,44 +54,53 @@
         document.removeEventListener('mousedown', onOutside, true);
         const name = input.value.trim() || mark.name;
         mark.name = name;
-        const nameDiv = document.createElement('div');
-        nameDiv.className = 'name';
-        nameDiv.textContent = name;
-        if (input.parentNode) meta.replaceChild(nameDiv, input);
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'name';
+        nameSpan.textContent = name;
+        if (input.parentNode) top.replaceChild(nameSpan, input);
         await storage.setMarkName(currentPageKey, mark.id, name);
       }
-      function onOutside(e) {
-        if (e.target !== input) commit();
-      }
+      function onOutside(e) { if (e.target !== input) commit(); }
 
       input.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === 'Escape') commit();
       });
       input.addEventListener('blur', commit);
-      // popup 里输入框 blur 不一定可靠，用捕获阶段的全局 mousedown 兜底，
-      // 保证"点击别处"一定收起编辑态。
       document.addEventListener('mousedown', onOutside, true);
 
-      meta.appendChild(input);
+      top.appendChild(input);
+      top.appendChild(timeEl);
       setTimeout(function () { input.focus(); input.select(); }, 0);
     } else {
-      const name = document.createElement('div');
-      name.className = 'name';
-      name.textContent = mark.name;
-      meta.appendChild(name);
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'name';
+      nameSpan.textContent = mark.name;
+      top.appendChild(nameSpan);
+      top.appendChild(timeEl);
     }
+    meta.appendChild(top);
 
-    const pct = document.createElement('div');
+    const pctValue = positioning.displayPercent(
+      mark.scrollPosition, mark.viewportHeight, mark.contentHeight);
+
+    const barRow = document.createElement('div');
+    barRow.className = 'bar-row';
+    const track = document.createElement('div');
+    track.className = 'track';
+    const fill = document.createElement('div');
+    fill.className = 'fill';
+    fill.style.width = pctValue + '%';
+    track.appendChild(fill);
+    const pct = document.createElement('span');
     pct.className = 'pct';
-    pct.textContent =
-      positioning.displayPercent(mark.scrollPosition, mark.viewportHeight, mark.contentHeight) +
-      '% scrolled';
-    meta.appendChild(pct);
+    pct.textContent = pctValue + '%';
+    barRow.appendChild(track);
+    barRow.appendChild(pct);
+    meta.appendChild(barRow);
+
     li.appendChild(meta);
 
-    const jump = document.createElement('button');
-    jump.textContent = '▶';
-    jump.title = 'Jump to this mark';
+    const jump = makeIconButton('play', 'jump', 'Jump to this mark');
     jump.onclick = async function () {
       try {
         await browser.ensureContentScript(currentTabId);
@@ -90,9 +112,7 @@
     };
     li.appendChild(jump);
 
-    const upd = document.createElement('button');
-    upd.textContent = '⟳';
-    upd.title = "Update this mark's position";
+    const upd = makeIconButton('rotate-cw', 'update', "Update this mark's position");
     upd.onclick = async function () {
       try {
         const snap = await capture();
@@ -129,10 +149,17 @@
     const mark = await storage.saveMark(currentPageKey, {
       snapshot: snap, id: crypto.randomUUID(), now: Date.now(),
     });
-    await render(mark.id); // 渲染时让新行进入改名编辑态
+    await render(mark.id); // 新行进入改名编辑态
+  }
+
+  function mountStaticIcons() {
+    document.getElementById('brand-icon').appendChild(icons.el('bookmark', 17));
+    document.getElementById('mark-icon').appendChild(icons.el('plus', 14));
+    document.getElementById('empty-icon').appendChild(icons.el('bookmark-plus', 28));
   }
 
   async function init() {
+    mountStaticIcons();
     const tab = await browser.getActiveTab();
     if (!tab || !/^https?:/.test(tab.url || '')) {
       document.getElementById('restricted').classList.remove('hidden');
