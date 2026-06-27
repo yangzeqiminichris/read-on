@@ -405,15 +405,6 @@
         for (const mark of g.marks) list.appendChild(allMarkRow(mark));
       }
     }
-    const footer = document.createElement('li');
-    footer.className = 'manager-link';
-    const mgr = document.createElement('button');
-    mgr.className = 'link-btn';
-    mgr.appendChild(icons.el('list', 14));
-    mgr.appendChild(document.createTextNode('Open full manager'));
-    mgr.onclick = function () { browser.openOptionsPage(); };
-    footer.appendChild(mgr);
-    list.appendChild(footer);
   }
 
   function updateToggleUI() {
@@ -425,6 +416,7 @@
     const list = document.getElementById('mark-list');
     const empty = document.getElementById('empty');
     const restricted = document.getElementById('restricted');
+    document.getElementById('all-footer').classList.toggle('hidden', view !== 'all');
     if (view === 'all') {
       restricted.classList.add('hidden');
       await renderAll(list, empty);
@@ -458,10 +450,12 @@
     document.getElementById('mark-icon').appendChild(icons.el('plus', 14));
     document.getElementById('all-icon').appendChild(icons.el('list', 14));
     document.getElementById('empty-icon').appendChild(icons.el('bookmark-plus', 28));
+    document.getElementById('manager-icon').appendChild(icons.el('list', 14));
   }
 
   async function init() {
     mountStaticIcons();
+    document.getElementById('manager-btn').onclick = function () { browser.openOptionsPage(); };
     document.getElementById('all-btn').onclick = function () {
       view = (view === 'all') ? 'page' : 'all';
       if (view === 'all') { collapsedDomains.clear(); collapsedPages.clear(); }
