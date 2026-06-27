@@ -63,3 +63,35 @@ test('createMark 不修改原 pageData（不可变）', () => {
   assert.strictEqual(pd.marks.length, 0);
   assert.strictEqual(pd.nextSeq, 1);
 });
+
+test('groupMarksByPage 跳过空组与非 pageData 键', () => {
+  const all = {
+    'x.com/a': { pageKey: 'x.com/a', marks: [], nextSeq: 1 },
+    '_readon_pending_jump': { pageKey: 'x.com/a', mark: {}, ts: 1 },
+  };
+  assert.deepStrictEqual(M.groupMarksByPage(all), []);
+});
+
+test('groupMarksByPage 组内按 createdAt 升序，组间按最近活动倒序', () => {
+  function mk(id, created, updated, pk, title, url) {
+    return { id: id, name: id, pageKey: pk, pageTitle: title, pageURL: url,
+             note: '', createdAt: created, updatedAt: updated,
+             scrollPosition: 0, viewportHeight: 1, contentHeight: 2,
+             strategy: 'page-ratio', anchorText: '', scrollContainerSelector: null };
+  }
+  const all = {
+    'a.com/p': { pageKey: 'a.com/p', nextSeq: 3, marks: [
+      mk('a2', 200, 200, 'a.com/p', 'A new', 'https://a.com/p'),
+      mk('a1', 100, 150, 'a.com/p', 'A old', 'https://a.com/p'),
+    ] },
+    'b.com/q': { pageKey: 'b.com/q', nextSeq: 2, marks: [
+      mk('b1', 50, 900, 'b.com/q', 'B', 'https://b.com/q'),
+    ] },
+  };
+  const groups = M.groupMarksByPage(all);
+  assert.deepStrictEqual(groups.map(function (g) { return g.pageKey; }), ['b.com/q', 'a.com/p']);
+  assert.deepStrictEqual(groups[1].marks.map(function (m) { return m.id; }), ['a1', 'a2']);
+  assert.strictEqual(groups[1].pageTitle, 'A new');
+  assert.strictEqual(groups[1].pageURL, 'https://a.com/p');
+  assert.strictEqual(groups[0].lastActivity, 900);
+});

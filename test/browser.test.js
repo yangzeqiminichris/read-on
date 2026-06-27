@@ -33,12 +33,12 @@ test('ensureContentScript: 内容脚本已在（ping 成功）则不注入', asy
   assert.deepStrictEqual(calls.sent[0], { tabId: 7, msg: { type: 'READON_PING' } });
 });
 
-test('ensureContentScript: ping 失败则注入 positioning + content', async () => {
+test('ensureContentScript: ping 失败则注入全部依赖 + content', async () => {
   const calls = installChrome({ pingFails: true });
   await browser.ensureContentScript(7);
   assert.strictEqual(calls.executeScript.length, 1);
   assert.deepStrictEqual(calls.executeScript[0], {
     target: { tabId: 7 },
-    files: ['src/lib/positioning.js', 'src/content.js'],
+    files: ['src/lib/positioning.js', 'src/lib/marks.js', 'src/lib/browser.js', 'src/lib/storage.js', 'src/content.js'],
   });
 });

@@ -39,9 +39,24 @@
     }
     await chrome.scripting.executeScript({
       target: { tabId: tabId },
-      files: ['src/lib/positioning.js', 'src/content.js'],
+      files: ['src/lib/positioning.js', 'src/lib/marks.js', 'src/lib/browser.js', 'src/lib/storage.js', 'src/content.js'],
     });
   }
 
-  return { storageGet, storageSet, getActiveTab, sendMessageToTab, ensureContentScript };
+  async function storageRemove(key) {
+    return chrome.storage.local.remove(key);
+  }
+
+  async function navigateTab(tabId, url) {
+    return chrome.tabs.update(tabId, { url: url });
+  }
+
+  async function openTab(url) {
+    return chrome.tabs.create({ url: url });
+  }
+
+  return {
+    storageGet, storageSet, getActiveTab, sendMessageToTab, ensureContentScript,
+    storageRemove, navigateTab, openTab,
+  };
 });

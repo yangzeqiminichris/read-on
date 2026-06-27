@@ -14,6 +14,7 @@ function installFakeChrome() {
           return out;
         },
         async set(obj) { Object.assign(store, obj); },
+        async remove(key) { delete store[key]; },
       },
     },
   };
@@ -97,4 +98,22 @@ test('setNote 可清空笔记', async () => {
   await storage.setNote('x.com/a', 'id1', 'x');
   await storage.setNote('x.com/a', 'id1', '');
   assert.strictEqual(store['x.com/a'].marks[0].note, '');
+});
+
+test('getAllPageData 返回整个存储（多页）', async () => {
+  installFakeChrome();
+  await storage.saveMark('x.com/a', { snapshot: snap, id: 'a', now: 1 });
+  await storage.saveMark('y.com/b', { snapshot: snap, id: 'b', now: 2 });
+  const all = await storage.getAllPageData();
+  assert.ok(all['x.com/a'] && all['y.com/b']);
+});
+
+test('setPendingJump/getPendingJump/clearPendingJump 往返', async () => {
+  installFakeChrome();
+  assert.strictEqual(await storage.getPendingJump(), null);
+  await storage.setPendingJump('x.com/a', { id: 'm1' }, 12345);
+  const rec = await storage.getPendingJump();
+  assert.deepStrictEqual(rec, { pageKey: 'x.com/a', mark: { id: 'm1' }, ts: 12345 });
+  await storage.clearPendingJump();
+  assert.strictEqual(await storage.getPendingJump(), null);
 });
