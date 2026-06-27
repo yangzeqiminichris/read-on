@@ -4,6 +4,8 @@
 
   let currentPageKey = null;
   let currentTabId = null;
+  let pageMarkable = false;
+  let view = 'page';
   const expandedIds = new Set();
 
   const UNREACHABLE_MSG = "Can't reach this page. Reload it and try again.";
@@ -39,6 +41,22 @@
     return btn;
   }
 
+  async function jumpTo(mark) {
+    if (pageMarkable && mark.pageKey === currentPageKey) {
+      try {
+        await browser.ensureContentScript(currentTabId);
+        await browser.sendMessageToTab(currentTabId, { type: 'READON_SCROLL_TO', mark: mark });
+        window.close();
+      } catch (e) {
+        showToast(UNREACHABLE_MSG);
+      }
+    } else {
+      await storage.setPendingJump(mark.pageKey, mark);
+      await browser.navigateTab(currentTabId, mark.pageURL);
+      window.close();
+    }
+  }
+
   function buildDetail(mark) {
     const detail = document.createElement('div');
     detail.className = 'row-detail';
@@ -71,7 +89,6 @@
       del.innerHTML = '';
       const btn = makeIconButton('trash-2', 'delete', 'Delete this mark');
       btn.onclick = function () {
-        // 有笔记才二次确认；无笔记直接删。
         if (mark.note && mark.note.trim()) renderDeleteConfirm();
         else doDelete();
       };
@@ -100,6 +117,25 @@
     detail.appendChild(del);
 
     return detail;
+  }
+
+  function barEl(mark) {
+    const pctValue = positioning.displayPercent(
+      mark.scrollPosition, mark.viewportHeight, mark.contentHeight);
+    const barRow = document.createElement('div');
+    barRow.className = 'bar-row';
+    const track = document.createElement('div');
+    track.className = 'track';
+    const fill = document.createElement('div');
+    fill.className = 'fill';
+    fill.style.width = pctValue + '%';
+    track.appendChild(fill);
+    const pct = document.createElement('span');
+    pct.className = 'pct';
+    pct.textContent = pctValue + '%';
+    barRow.appendChild(track);
+    barRow.appendChild(pct);
+    return barRow;
   }
 
   function renderRow(mark, editing) {
@@ -169,37 +205,11 @@
       top.appendChild(timeEl);
     }
     meta.appendChild(top);
-
-    const pctValue = positioning.displayPercent(
-      mark.scrollPosition, mark.viewportHeight, mark.contentHeight);
-
-    const barRow = document.createElement('div');
-    barRow.className = 'bar-row';
-    const track = document.createElement('div');
-    track.className = 'track';
-    const fill = document.createElement('div');
-    fill.className = 'fill';
-    fill.style.width = pctValue + '%';
-    track.appendChild(fill);
-    const pct = document.createElement('span');
-    pct.className = 'pct';
-    pct.textContent = pctValue + '%';
-    barRow.appendChild(track);
-    barRow.appendChild(pct);
-    meta.appendChild(barRow);
-
+    meta.appendChild(barEl(mark));
     main.appendChild(meta);
 
     const jump = makeIconButton('play', 'jump', 'Jump to this mark');
-    jump.onclick = async function () {
-      try {
-        await browser.ensureContentScript(currentTabId);
-        await browser.sendMessageToTab(currentTabId, { type: 'READON_SCROLL_TO', mark: mark });
-        window.close();
-      } catch (e) {
-        showToast(UNREACHABLE_MSG);
-      }
-    };
+    jump.onclick = function () { jumpTo(mark); };
     main.appendChild(jump);
 
     const upd = makeIconButton('rotate-cw', 'update', "Update this mark's position");
@@ -229,13 +239,107 @@
     return li;
   }
 
-  async function render(editId) {
+  function groupHeadEl(g) {
+    const li = document.createElement('li');
+    li.className = 'group-head';
+    li.appendChild(icons.el('globe', 14));
+    const box = document.createElement('div');
+    box.className = 'group-meta';
+    const t = document.createElement('div');
+    t.className = 'group-title';
+    t.textContent = g.pageTitle || g.pageKey;
+    const u = document.createElement('div');
+    u.className = 'group-url';
+    u.textContent = g.pageKey;
+    box.appendChild(t);
+    box.appendChild(u);
+    li.appendChild(box);
+    return li;
+  }
+
+  function allMarkRow(mark) {
+    const li = document.createElement('li');
+    li.className = 'mark-row';
+    li.dataset.markId = mark.id;
+
+    const main = document.createElement('div');
+    main.className = 'row-main';
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+
+    const top = document.createElement('div');
+    top.className = 'row-top';
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'name';
+    nameSpan.textContent = mark.name;
+    const timeEl = document.createElement('span');
+    timeEl.className = 'time';
+    timeEl.textContent = time.formatRelativeTime(mark.updatedAt, Date.now());
+    top.appendChild(nameSpan);
+    top.appendChild(timeEl);
+    meta.appendChild(top);
+    meta.appendChild(barEl(mark));
+
+    if (mark.note && mark.note.trim()) {
+      const prev = document.createElement('div');
+      prev.className = 'note-preview';
+      prev.appendChild(icons.el('square-pen', 12));
+      const txt = document.createElement('span');
+      txt.textContent = mark.note.split('\n')[0];
+      prev.appendChild(txt);
+      meta.appendChild(prev);
+    }
+
+    main.appendChild(meta);
+
+    const jump = makeIconButton('play', 'jump', 'Jump to this mark');
+    jump.onclick = function () { jumpTo(mark); };
+    main.appendChild(jump);
+
+    li.appendChild(main);
+    return li;
+  }
+
+  async function renderPage(list, empty, editId) {
     const pageData = await storage.getPageData(currentPageKey);
-    const list = document.getElementById('mark-list');
     list.innerHTML = '';
-    document.getElementById('empty').classList.toggle('hidden', pageData.marks.length > 0);
+    empty.classList.toggle('hidden', pageData.marks.length > 0);
     for (const mark of pageData.marks) {
       list.appendChild(renderRow(mark, mark.id === editId));
+    }
+  }
+
+  async function renderAll(list, empty) {
+    const allData = await storage.getAllPageData();
+    const groups = marks.groupMarksByPage(allData);
+    list.innerHTML = '';
+    empty.classList.toggle('hidden', groups.length > 0);
+    for (const g of groups) {
+      list.appendChild(groupHeadEl(g));
+      for (const mark of g.marks) list.appendChild(allMarkRow(mark));
+    }
+  }
+
+  function updateToggleUI() {
+    document.getElementById('all-btn').classList.toggle('active', view === 'all');
+  }
+
+  async function render(editId) {
+    updateToggleUI();
+    const list = document.getElementById('mark-list');
+    const empty = document.getElementById('empty');
+    const restricted = document.getElementById('restricted');
+    if (view === 'all') {
+      restricted.classList.add('hidden');
+      await renderAll(list, empty);
+    } else if (!pageMarkable) {
+      list.innerHTML = '';
+      empty.classList.add('hidden');
+      restricted.classList.remove('hidden');
+    } else {
+      restricted.classList.add('hidden');
+      await renderPage(list, empty, editId);
     }
   }
 
@@ -250,26 +354,33 @@
     const mark = await storage.saveMark(currentPageKey, {
       snapshot: snap, id: crypto.randomUUID(), now: Date.now(),
     });
+    view = 'page';
     await render(mark.id);
   }
 
   function mountStaticIcons() {
     document.getElementById('brand-icon').appendChild(icons.el('bookmark', 17));
     document.getElementById('mark-icon').appendChild(icons.el('plus', 14));
+    document.getElementById('all-icon').appendChild(icons.el('list', 14));
     document.getElementById('empty-icon').appendChild(icons.el('bookmark-plus', 28));
   }
 
   async function init() {
     mountStaticIcons();
+    document.getElementById('all-btn').onclick = function () {
+      view = (view === 'all') ? 'page' : 'all';
+      render();
+    };
     const tab = await browser.getActiveTab();
-    if (!tab || !/^https?:/.test(tab.url || '')) {
-      document.getElementById('restricted').classList.remove('hidden');
+    currentTabId = tab ? tab.id : null;
+    if (tab && /^https?:/.test(tab.url || '')) {
+      pageMarkable = true;
+      currentPageKey = marks.pageKeyFromURL(tab.url);
+      document.getElementById('mark-btn').onclick = onMark;
+    } else {
+      pageMarkable = false;
       document.getElementById('mark-btn').disabled = true;
-      return;
     }
-    currentTabId = tab.id;
-    currentPageKey = marks.pageKeyFromURL(tab.url);
-    document.getElementById('mark-btn').onclick = onMark;
     await render();
   }
 
