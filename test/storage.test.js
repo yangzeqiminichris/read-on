@@ -117,3 +117,49 @@ test('setPendingJump/getPendingJump/clearPendingJump 往返', async () => {
   await storage.clearPendingJump();
   assert.strictEqual(await storage.getPendingJump(), null);
 });
+
+test('deleteMarks 跨页批量删除，nextSeq 不变', async () => {
+  const store = installFakeChrome();
+  await storage.saveMark('x.com/a', { snapshot: snap, id: 'a1', now: 1 });
+  await storage.saveMark('x.com/a', { snapshot: snap, id: 'a2', now: 2 });
+  await storage.saveMark('y.com/b', { snapshot: snap, id: 'b1', now: 3 });
+  await storage.deleteMarks([{ pageKey: 'x.com/a', id: 'a1' }, { pageKey: 'y.com/b', id: 'b1' }]);
+  assert.deepStrictEqual(store['x.com/a'].marks.map(function (m) { return m.id; }), ['a2']);
+  assert.strictEqual(store['x.com/a'].nextSeq, 3);
+  assert.strictEqual(store['y.com/b'].marks.length, 0);
+});
+
+test('getAliases 缺省返回空结构', async () => {
+  installFakeChrome();
+  assert.deepStrictEqual(await storage.getAliases(), { domains: {}, pages: {} });
+});
+
+test('setDomainAlias 设置与清除（空白清除）', async () => {
+  installFakeChrome();
+  await storage.setDomainAlias('x.com', 'My X');
+  assert.strictEqual((await storage.getAliases()).domains['x.com'], 'My X');
+  await storage.setDomainAlias('x.com', '   ');
+  assert.strictEqual((await storage.getAliases()).domains['x.com'], undefined);
+});
+
+test('setPageAlias 独立于 domains', async () => {
+  installFakeChrome();
+  await storage.setPageAlias('x.com/a', 'Intro');
+  const al = await storage.getAliases();
+  assert.strictEqual(al.pages['x.com/a'], 'Intro');
+  assert.deepStrictEqual(al.domains, {});
+});
+
+test('importMerge 合并写回并返回新增数', async () => {
+  const store = installFakeChrome();
+  await storage.saveMark('x.com/a', { snapshot: snap, id: 'a', now: 1 });
+  const a = store['x.com/a'].marks[0];
+  const imported = {
+    'x.com/a': { pageKey: 'x.com/a', nextSeq: 1, marks: [ a, Object.assign({}, a, { id: 'b' }) ] },
+    'y.com/c': { pageKey: 'y.com/c', nextSeq: 1, marks: [ Object.assign({}, a, { id: 'c', pageKey: 'y.com/c' }) ] },
+  };
+  const added = await storage.importMerge(imported);
+  assert.strictEqual(added, 2);
+  assert.deepStrictEqual(store['x.com/a'].marks.map(function (m) { return m.id; }), ['a', 'b']);
+  assert.ok(store['y.com/c']);
+});

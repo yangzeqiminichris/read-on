@@ -205,7 +205,7 @@
         const flag = document.createElement('span');
         flag.className = 'name-note-flag';
         flag.title = 'Has note';
-        flag.appendChild(icons.el('square-pen', 12));
+        flag.appendChild(icons.el('align-left', 12));
         nameWrap.appendChild(flag);
       }
       top.appendChild(nameWrap);
@@ -246,18 +246,21 @@
     return li;
   }
 
-  function groupHeadEl(g) {
+  function groupHeadEl(g, aliases) {
     const li = document.createElement('li');
     li.className = 'group-head';
     li.appendChild(icons.el('globe', 14));
     const box = document.createElement('div');
     box.className = 'group-meta';
+    const aliasVal = (aliases && aliases.pages[g.pageKey] || '').trim();
     const t = document.createElement('div');
     t.className = 'group-title';
-    t.textContent = g.pageTitle || g.pageKey;
+    t.textContent = aliasVal || g.pageTitle || g.pageKey;
     const u = document.createElement('div');
     u.className = 'group-url';
-    u.textContent = g.pageKey;
+    u.textContent = aliasVal
+      ? (g.pageTitle ? g.pageTitle + ' · ' + g.pageKey : g.pageKey)
+      : g.pageKey;
     box.appendChild(t);
     box.appendChild(u);
     li.appendChild(box);
@@ -291,7 +294,7 @@
     if (mark.note && mark.note.trim()) {
       const prev = document.createElement('div');
       prev.className = 'note-preview';
-      prev.appendChild(icons.el('square-pen', 12));
+      prev.appendChild(icons.el('align-left', 12));
       const txt = document.createElement('span');
       txt.textContent = mark.note.split('\n')[0];
       prev.appendChild(txt);
@@ -319,13 +322,23 @@
 
   async function renderAll(list, empty) {
     const allData = await storage.getAllPageData();
+    const aliases = await storage.getAliases();
     const groups = marks.groupMarksByPage(allData);
     list.innerHTML = '';
     empty.classList.toggle('hidden', groups.length > 0);
     for (const g of groups) {
-      list.appendChild(groupHeadEl(g));
+      list.appendChild(groupHeadEl(g, aliases));
       for (const mark of g.marks) list.appendChild(allMarkRow(mark));
     }
+    const footer = document.createElement('li');
+    footer.className = 'manager-link';
+    const mgr = document.createElement('button');
+    mgr.className = 'link-btn';
+    mgr.appendChild(icons.el('list', 14));
+    mgr.appendChild(document.createTextNode('Open full manager'));
+    mgr.onclick = function () { browser.openOptionsPage(); };
+    footer.appendChild(mgr);
+    list.appendChild(footer);
   }
 
   function updateToggleUI() {

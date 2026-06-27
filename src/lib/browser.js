@@ -55,8 +55,12 @@
     return chrome.tabs.create({ url: url });
   }
 
+  async function openOptionsPage() {
+    return chrome.runtime.openOptionsPage();
+  }
+
   return {
     storageGet, storageSet, getActiveTab, sendMessageToTab, ensureContentScript,
-    storageRemove, navigateTab, openTab,
+    storageRemove, navigateTab, openTab, openOptionsPage,
   };
 });

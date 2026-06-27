@@ -95,3 +95,69 @@ test('groupMarksByPage 组内按 createdAt 升序，组间按最近活动倒序'
   assert.strictEqual(groups[1].pageURL, 'https://a.com/p');
   assert.strictEqual(groups[0].lastActivity, 900);
 });
+
+test('normalizeImport 接受 {pages} 与裸 map，拒绝非法', () => {
+  const pd = { pageKey: 'x.com/a', nextSeq: 1, marks: [] };
+  assert.deepStrictEqual(M.normalizeImport({ pages: { 'x.com/a': pd } }), { 'x.com/a': pd });
+  assert.deepStrictEqual(M.normalizeImport({ 'x.com/a': pd }), { 'x.com/a': pd });
+  assert.strictEqual(M.normalizeImport(null), null);
+  assert.strictEqual(M.normalizeImport({ foo: 1 }), null);
+});
+
+test('mergeImport 按 id 去重、并入新页面、nextSeq 取 max、不可变', () => {
+  function mk(id) {
+    return { id: id, name: id, pageKey: 'x.com/a', pageTitle: 'A', pageURL: 'u', note: '',
+             createdAt: 1, updatedAt: 1, scrollPosition: 0, viewportHeight: 1, contentHeight: 2,
+             strategy: 'page-ratio', anchorText: '', scrollContainerSelector: null };
+  }
+  const existing = { 'x.com/a': { pageKey: 'x.com/a', nextSeq: 2, marks: [ mk('a') ] } };
+  const imported = {
+    'x.com/a': { pageKey: 'x.com/a', nextSeq: 5, marks: [ mk('a'), mk('b') ] },
+    'y.com/c': { pageKey: 'y.com/c', nextSeq: 3, marks: [ mk('c') ] },
+  };
+  const merged = M.mergeImport(existing, imported);
+  assert.deepStrictEqual(merged['x.com/a'].marks.map(function (m) { return m.id; }), ['a', 'b']);
+  assert.strictEqual(merged['x.com/a'].nextSeq, 5);
+  assert.ok(merged['y.com/c']);
+  assert.strictEqual(existing['x.com/a'].marks.length, 1);
+});
+
+test('buildExport 结构与过滤', () => {
+  const all = { 'x.com/a': { pageKey: 'x.com/a', nextSeq: 1, marks: [] }, '_readon_pending_jump': { ts: 1 } };
+  const exp = M.buildExport(all, 999);
+  assert.strictEqual(exp.version, 1);
+  assert.strictEqual(exp.exportedAt, 999);
+  assert.ok(exp.pages['x.com/a']);
+  assert.strictEqual(exp.pages['_readon_pending_jump'], undefined);
+});
+
+test('domainOf 取 hostname', () => {
+  assert.strictEqual(M.domainOf('x.com/a/b'), 'x.com');
+  assert.strictEqual(M.domainOf('x.com'), 'x.com');
+});
+
+test('aliasOr 有值用值、空白/缺失/非串回退', () => {
+  assert.strictEqual(M.aliasOr({ a: 'X' }, 'a', 'def'), 'X');
+  assert.strictEqual(M.aliasOr({ a: '  ' }, 'a', 'def'), 'def');
+  assert.strictEqual(M.aliasOr({}, 'a', 'def'), 'def');
+  assert.strictEqual(M.aliasOr(null, 'a', 'def'), 'def');
+  assert.strictEqual(M.aliasOr({ a: 5 }, 'a', 'def'), 'def');
+});
+
+test('groupMarksByDomain 按域名归并并排序', () => {
+  function mk(id, created, updated, pk, title, url) {
+    return { id: id, name: id, pageKey: pk, pageTitle: title, pageURL: url, note: '',
+             createdAt: created, updatedAt: updated, scrollPosition: 0, viewportHeight: 1, contentHeight: 2,
+             strategy: 'page-ratio', anchorText: '', scrollContainerSelector: null };
+  }
+  const all = {
+    'a.com/p1': { pageKey: 'a.com/p1', nextSeq: 2, marks: [ mk('a1', 100, 150, 'a.com/p1', 'P1', 'https://a.com/p1') ] },
+    'a.com/p2': { pageKey: 'a.com/p2', nextSeq: 2, marks: [ mk('a2', 120, 120, 'a.com/p2', 'P2', 'https://a.com/p2') ] },
+    'b.com/q':  { pageKey: 'b.com/q',  nextSeq: 2, marks: [ mk('b1', 50, 900, 'b.com/q', 'Q', 'https://b.com/q') ] },
+  };
+  const domains = M.groupMarksByDomain(all);
+  assert.deepStrictEqual(domains.map(function (d) { return d.domain; }), ['b.com', 'a.com']);
+  const a = domains[1];
+  assert.strictEqual(a.markCount, 2);
+  assert.deepStrictEqual(a.pages.map(function (p) { return p.pageKey; }), ['a.com/p1', 'a.com/p2']);
+});
