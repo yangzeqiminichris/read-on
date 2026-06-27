@@ -298,8 +298,7 @@
 
     const collapseBtn = document.createElement('button');
     collapseBtn.className = 'toolbar-btn';
-    collapseBtn.appendChild(icons.el('chevrons-up', 14));
-    collapseBtn.appendChild(document.createTextNode('Collapse All'));
+    collapseBtn.textContent = 'Collapse All';
     collapseBtn.onclick = async function () {
       for (const d of domains) collapsedDomains.add(d.domain);
       await render();
@@ -307,8 +306,7 @@
 
     const expandBtn = document.createElement('button');
     expandBtn.className = 'toolbar-btn';
-    expandBtn.appendChild(icons.el('chevrons-down', 14));
-    expandBtn.appendChild(document.createTextNode('Expand All'));
+    expandBtn.textContent = 'Expand All';
     expandBtn.onclick = async function () {
       collapsedDomains.clear();
       collapsedPages.clear();
