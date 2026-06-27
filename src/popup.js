@@ -246,18 +246,21 @@
     return li;
   }
 
-  function groupHeadEl(g) {
+  function groupHeadEl(g, aliases) {
     const li = document.createElement('li');
     li.className = 'group-head';
     li.appendChild(icons.el('globe', 14));
     const box = document.createElement('div');
     box.className = 'group-meta';
+    const aliasVal = (aliases && aliases.pages[g.pageKey] || '').trim();
     const t = document.createElement('div');
     t.className = 'group-title';
-    t.textContent = g.pageTitle || g.pageKey;
+    t.textContent = aliasVal || g.pageTitle || g.pageKey;
     const u = document.createElement('div');
     u.className = 'group-url';
-    u.textContent = g.pageKey;
+    u.textContent = aliasVal
+      ? (g.pageTitle ? g.pageTitle + ' · ' + g.pageKey : g.pageKey)
+      : g.pageKey;
     box.appendChild(t);
     box.appendChild(u);
     li.appendChild(box);
@@ -319,11 +322,12 @@
 
   async function renderAll(list, empty) {
     const allData = await storage.getAllPageData();
+    const aliases = await storage.getAliases();
     const groups = marks.groupMarksByPage(allData);
     list.innerHTML = '';
     empty.classList.toggle('hidden', groups.length > 0);
     for (const g of groups) {
-      list.appendChild(groupHeadEl(g));
+      list.appendChild(groupHeadEl(g, aliases));
       for (const mark of g.marks) list.appendChild(allMarkRow(mark));
     }
     const footer = document.createElement('li');
