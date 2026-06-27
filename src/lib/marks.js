@@ -102,6 +102,7 @@
     return domains;
   }
 
+  // 一页可有多个标签：同一个 page-group 对象会被复用进多个标签桶（消费端只读渲染，不可变更）。
   function groupMarksByTag(allData, tags) {
     const pageGroups = groupMarksByPage(allData);
     const tagMap = (tags && tags.pages) || {};
