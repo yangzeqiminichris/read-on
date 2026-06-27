@@ -18,6 +18,8 @@
   --focus: #C99A4A;
   --danger: #B23B3B;
   --danger-on: #FFFFFF;
+  --active: #4A3F38;
+  --active-on: #FFFFFF;
 
   --radius-button: 9px;
   --radius-card: 11px;
@@ -48,5 +50,7 @@
     --focus: #E0B36A;
     --danger: #E06B6B;
     --danger-on: #231A13;
+    --active: #5A4F44;
+    --active-on: #EDE6DA;
   }
 }
