@@ -302,7 +302,6 @@
     collapseBtn.appendChild(document.createTextNode('Collapse All'));
     collapseBtn.onclick = async function () {
       for (const d of domains) collapsedDomains.add(d.domain);
-      collapsedPages.clear();
       await render();
     };
 
@@ -398,7 +397,7 @@
     const domains = marks.groupMarksByDomain(allData);
     list.innerHTML = '';
     empty.classList.toggle('hidden', domains.length > 0);
-    list.appendChild(toolbarEl(domains));
+    if (domains.length > 0) list.appendChild(toolbarEl(domains));
     for (const d of domains) {
       list.appendChild(domainHeadEl(d));
       if (collapsedDomains.has(d.domain)) continue;
@@ -467,6 +466,7 @@
     mountStaticIcons();
     document.getElementById('all-btn').onclick = function () {
       view = (view === 'all') ? 'page' : 'all';
+      if (view === 'all') { collapsedDomains.clear(); collapsedPages.clear(); }
       render();
     };
     const tab = await browser.getActiveTab();
