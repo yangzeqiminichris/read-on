@@ -9,6 +9,7 @@
   const expandedIds = new Set();
   const collapsedDomains = new Set();
   const collapsedPages   = new Set();
+  let currentDomains = [];
 
   const UNREACHABLE_MSG = "Can't reach this page. Reload it and try again.";
 
@@ -292,32 +293,6 @@
     return li;
   }
 
-  function toolbarEl(domains) {
-    const li = document.createElement('li');
-    li.className = 'all-toolbar';
-
-    const collapseBtn = document.createElement('button');
-    collapseBtn.className = 'toolbar-btn';
-    collapseBtn.textContent = 'Collapse All';
-    collapseBtn.onclick = async function () {
-      for (const d of domains) collapsedDomains.add(d.domain);
-      await render();
-    };
-
-    const expandBtn = document.createElement('button');
-    expandBtn.className = 'toolbar-btn';
-    expandBtn.textContent = 'Expand All';
-    expandBtn.onclick = async function () {
-      collapsedDomains.clear();
-      collapsedPages.clear();
-      await render();
-    };
-
-    li.appendChild(collapseBtn);
-    li.appendChild(expandBtn);
-    return li;
-  }
-
   function domainHeadEl(d) {
     const li = document.createElement('li');
     li.className = 'domain-head';
@@ -393,9 +368,10 @@
     const allData = await storage.getAllPageData();
     const aliases = await storage.getAliases();
     const domains = marks.groupMarksByDomain(allData);
+    currentDomains = domains;
     list.innerHTML = '';
     empty.classList.toggle('hidden', domains.length > 0);
-    if (domains.length > 0) list.appendChild(toolbarEl(domains));
+    document.getElementById('all-toolbar').classList.toggle('hidden', domains.length === 0);
     for (const d of domains) {
       list.appendChild(domainHeadEl(d));
       if (collapsedDomains.has(d.domain)) continue;
@@ -417,6 +393,7 @@
     const empty = document.getElementById('empty');
     const restricted = document.getElementById('restricted');
     document.getElementById('all-footer').classList.toggle('hidden', view !== 'all');
+    if (view !== 'all') document.getElementById('all-toolbar').classList.add('hidden');
     if (view === 'all') {
       restricted.classList.add('hidden');
       await renderAll(list, empty);
@@ -456,6 +433,15 @@
   async function init() {
     mountStaticIcons();
     document.getElementById('manager-btn').onclick = function () { browser.openOptionsPage(); };
+    document.getElementById('collapse-all-btn').onclick = function () {
+      for (const d of currentDomains) collapsedDomains.add(d.domain);
+      render();
+    };
+    document.getElementById('expand-all-btn').onclick = function () {
+      collapsedDomains.clear();
+      collapsedPages.clear();
+      render();
+    };
     document.getElementById('all-btn').onclick = function () {
       view = (view === 'all') ? 'page' : 'all';
       if (view === 'all') { collapsedDomains.clear(); collapsedPages.clear(); }
