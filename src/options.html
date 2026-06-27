@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="opt-header">
+      <div class="brand"><span id="brand-icon" class="brand-icon"></span><span class="opt-title">ReadOn · Manage</span></div>
+      <div class="opt-actions">
+        <button id="import-btn" class="pill-btn"><span id="import-icon" class="i"></span>Import</button>
+        <button id="export-btn" class="pill-btn"><span id="export-icon" class="i"></span>Export</button>
+      </div>
+    </header>
+    <div class="search-box">
+      <span id="search-icon" class="i"></span>
+      <input id="search" type="text" placeholder="Search marks, notes, pages…">
+    </div>
+    <div id="batchbar" class="batchbar hidden"></div>
+    <ul id="list"></ul>
+    <div id="empty" class="hidden">
+      <span id="empty-icon" class="empty-icon"></span>
+      <p>No marks yet. Mark a spot while reading to see it here.</p>
+    </div>
+    <input id="file-input" type="file" accept=".json,application/json" class="hidden">
+    <div id="toast" class="toast hidden"></div>
+  </main>
+
+  <script src="lib/positioning.js"></script>
+  <script src="lib/marks.js"></script>
+  <script src="lib/browser.js"></script>
+  <script src="lib/storage.js"></script>
+  <script src="lib/time.js"></script>
+  <script src="lib/icons.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
