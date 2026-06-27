@@ -23,7 +23,7 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
 
 ul#list { list-style: none; margin: 0; padding: 0; }
 
-.domain-head { display: flex; align-items: center; gap: 9px; padding: 16px 2px 8px; border-bottom: 1px solid var(--border); }
+.domain-head { display: flex; align-items: center; gap: 9px; padding: 16px 2px 8px; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
 .domain-head .i, .domain-head > svg { color: var(--text-secondary); flex-shrink: 0; }
 .domain-name { font-size: 14px; font-weight: 500; }
 .domain-count { font-size: 11px; color: var(--text-muted); }
@@ -78,12 +78,12 @@ ul#list { list-style: none; margin: 0; padding: 0; }
 .domain-head .domain-name, .alias-block .domain-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .alias-block .page-title { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .alias-sub { font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.alias-input { font-family: inherit; font-size: 13px; font-weight: 500; width: 220px; max-width: 100%; padding: 2px 7px; border: 1px solid var(--accent); border-radius: 6px; background: var(--surface); color: var(--text); }
+.alias-input { font-family: inherit; font-size: 13px; font-weight: 500; width: 220px; max-width: 100%; padding: 2px 7px; border: 1px solid var(--accent); border-radius: 6px; background: var(--surface); color: var(--text); user-select: text; }
 .alias-input:focus { outline: none; }
 .rename-btn { display: inline-flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-muted); padding: 3px; border-radius: 6px; cursor: pointer; flex-shrink: 0; }
 .rename-btn:hover { background: var(--track); color: var(--accent); }
 .rename-btn.empty { color: color-mix(in srgb, var(--text-muted) 55%, transparent); }
-.page-head { display: flex; align-items: center; gap: 6px; }
+.page-head { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
 
 .all-toolbar { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 12px 2px; border-bottom: 1px solid var(--border); }
 .toolbar-btn { display: inline-flex; align-items: center; justify-content: center; font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-button); padding: 6px 14px; cursor: pointer; }

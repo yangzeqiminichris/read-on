@@ -205,11 +205,16 @@
     count.textContent = group.markCount + (group.markCount === 1 ? ' mark' : ' marks');
     li.appendChild(count);
 
-    li.appendChild(chevronToggle(collapsedDomains.has(group.domain), function () {
+    function toggle() {
       if (collapsedDomains.has(group.domain)) collapsedDomains.delete(group.domain);
       else collapsedDomains.add(group.domain);
       render();
-    }));
+    }
+    li.appendChild(chevronToggle(collapsedDomains.has(group.domain), toggle));
+    li.onclick = function (e) {
+      if (e.target.closest('button, input')) return;
+      toggle();
+    };
     return li;
   }
 
@@ -229,11 +234,16 @@
     li.appendChild(block.el);
     li.appendChild(renameBtn(!!aliasVal, function () { block.edit(); }));
 
-    li.appendChild(chevronToggle(collapsedPages.has(p.pageKey), function () {
+    function toggle() {
       if (collapsedPages.has(p.pageKey)) collapsedPages.delete(p.pageKey);
       else collapsedPages.add(p.pageKey);
       render();
-    }));
+    }
+    li.appendChild(chevronToggle(collapsedPages.has(p.pageKey), toggle));
+    li.onclick = function (e) {
+      if (e.target.closest('button, input')) return;
+      toggle();
+    };
     return li;
   }
 
