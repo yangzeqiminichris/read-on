@@ -11,7 +11,7 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["src/lib/positioning.js", "src/content.js"],
+      "js": ["src/lib/positioning.js", "src/lib/marks.js", "src/lib/browser.js", "src/lib/storage.js", "src/content.js"],
       "run_at": "document_idle"
     }
   ]
