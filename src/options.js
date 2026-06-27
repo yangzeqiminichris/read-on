@@ -4,6 +4,8 @@
 
   const expandedIds = new Set();
   const selectedIds = new Set();
+  const collapsedDomains = new Set();
+  const collapsedPages = new Set();
   let query = '';
   let allData = {};
   let aliases = { domains: {}, pages: {} };
@@ -24,6 +26,39 @@
     b.title = label;
     b.appendChild(icons.el(iconId, 16));
     return b;
+  }
+
+  function chevronToggle(collapsed, onClick) {
+    const b = document.createElement('button');
+    b.className = 'collapse-toggle' + (collapsed ? ' collapsed' : '');
+    b.title = collapsed ? 'Expand' : 'Collapse';
+    b.setAttribute('aria-label', b.title);
+    b.appendChild(icons.el('chevron-down', 16));
+    b.onclick = onClick;
+    return b;
+  }
+
+  function toolbarEl(groups) {
+    const li = document.createElement('li');
+    li.className = 'all-toolbar';
+    const collapseBtn = document.createElement('button');
+    collapseBtn.className = 'toolbar-btn';
+    collapseBtn.textContent = 'Collapse All';
+    collapseBtn.onclick = function () {
+      for (const g of groups) collapsedDomains.add(g.domain);
+      render();
+    };
+    const expandBtn = document.createElement('button');
+    expandBtn.className = 'toolbar-btn';
+    expandBtn.textContent = 'Expand All';
+    expandBtn.onclick = function () {
+      collapsedDomains.clear();
+      collapsedPages.clear();
+      render();
+    };
+    li.appendChild(collapseBtn);
+    li.appendChild(expandBtn);
+    return li;
   }
 
   function filteredData() {
@@ -191,6 +226,12 @@
     count.className = 'domain-count';
     count.textContent = group.markCount + (group.markCount === 1 ? ' mark' : ' marks');
     li.appendChild(count);
+
+    li.appendChild(chevronToggle(collapsedDomains.has(group.domain), function () {
+      if (collapsedDomains.has(group.domain)) collapsedDomains.delete(group.domain);
+      else collapsedDomains.add(group.domain);
+      render();
+    }));
     return li;
   }
 
@@ -209,6 +250,12 @@
     });
     li.appendChild(block.el);
     li.appendChild(renameBtn(!!aliasVal, function () { block.edit(); }));
+
+    li.appendChild(chevronToggle(collapsedPages.has(p.pageKey), function () {
+      if (collapsedPages.has(p.pageKey)) collapsedPages.delete(p.pageKey);
+      else collapsedPages.add(p.pageKey);
+      render();
+    }));
     return li;
   }
 
@@ -322,12 +369,16 @@
     const list = document.getElementById('list');
     const empty = document.getElementById('empty');
     list.innerHTML = '';
+    const searching = !!query.trim();
     const groups = marks.groupMarksByDomain(filteredData());
     empty.classList.toggle('hidden', groups.length > 0);
+    if (!searching && groups.length) list.appendChild(toolbarEl(groups));
     for (const g of groups) {
       list.appendChild(domainHead(g));
+      if (!searching && collapsedDomains.has(g.domain)) continue;
       for (const p of g.pages) {
         list.appendChild(pageHead(p));
+        if (!searching && collapsedPages.has(p.pageKey)) continue;
         for (const m of p.marks) list.appendChild(markRow(m));
       }
     }

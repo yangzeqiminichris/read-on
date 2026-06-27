@@ -81,3 +81,13 @@ ul#list { list-style: none; margin: 0; padding: 0; }
 .rename-btn:hover { background: var(--track); color: var(--accent); }
 .rename-btn.empty { color: color-mix(in srgb, var(--text-muted) 55%, transparent); }
 .page-head { display: flex; align-items: center; gap: 6px; }
+
+.all-toolbar { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 8px 2px 4px; list-style: none; }
+.toolbar-btn { display: inline-flex; align-items: center; justify-content: center; font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-button); padding: 6px 14px; cursor: pointer; }
+.toolbar-btn:hover { background: var(--row-hover); border-color: var(--accent); color: var(--accent); }
+.toolbar-btn:active { transform: scale(0.98); }
+
+.collapse-toggle { display: inline-flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-muted); padding: 3px; border-radius: 6px; cursor: pointer; flex-shrink: 0; }
+.collapse-toggle:hover { background: var(--track); color: var(--accent); }
+.collapse-toggle svg { transition: transform .15s ease; }
+.collapse-toggle.collapsed svg { transform: rotate(-90deg); }
