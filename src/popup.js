@@ -7,9 +7,7 @@
   let pageMarkable = false;
   let view = 'page';
   const expandedIds = new Set();
-  const collapsedDomains = new Set();
   const collapsedPages   = new Set();
-  let currentDomains = [];
 
   const UNREACHABLE_MSG = "Can't reach this page. Reload it and try again.";
 
@@ -249,7 +247,7 @@
     return li;
   }
 
-  function allMarkRow(mark) {
+  function allMarkRow(mark, showNote) {
     const li = document.createElement('li');
     li.className = 'mark-row';
     li.dataset.markId = mark.id;
@@ -273,7 +271,7 @@
     meta.appendChild(top);
     meta.appendChild(barEl(mark));
 
-    if (mark.note && mark.note.trim()) {
+    if (showNote !== false && mark.note && mark.note.trim()) {
       const prev = document.createElement('div');
       prev.className = 'note-preview';
       prev.appendChild(icons.el('align-left', 12));
@@ -293,61 +291,32 @@
     return li;
   }
 
-  function domainHeadEl(d) {
-    const li = document.createElement('li');
-    li.className = 'domain-head';
-    if (collapsedDomains.has(d.domain)) li.classList.add('collapsed');
-
-    const chevron = icons.el('chevron-down', 14);
-    chevron.classList.add('domain-chevron');
-    li.appendChild(chevron);
-
-    const label = document.createElement('span');
-    label.className = 'domain-label';
-    label.textContent = d.domain;
-
-    const count = document.createElement('span');
-    count.className = 'domain-count';
-    count.textContent = d.markCount + (d.markCount === 1 ? ' mark' : ' marks');
-
-    li.appendChild(label);
-    li.appendChild(count);
-
-    li.onclick = async function () {
-      if (collapsedDomains.has(d.domain)) collapsedDomains.delete(d.domain);
-      else collapsedDomains.add(d.domain);
-      await render();
-    };
-    return li;
-  }
-
   function pageHeadEl(g, aliases) {
     const li = document.createElement('li');
     li.className = 'page-head';
     if (collapsedPages.has(g.pageKey)) li.classList.add('collapsed');
 
-    li.appendChild(icons.el('globe', 13));
-
-    const box = document.createElement('div');
-    box.className = 'group-meta';
-    const aliasVal = (aliases && aliases.pages[g.pageKey] || '').trim();
-    const t = document.createElement('div');
-    t.className = 'group-title';
-    t.textContent = aliasVal || g.pageTitle || g.pageKey;
-    const u = document.createElement('div');
-    u.className = 'group-url';
-    u.textContent = aliasVal
-      ? (g.pageTitle ? g.pageTitle + ' · ' + g.pageKey : g.pageKey)
-      : g.pageKey;
-    box.appendChild(t);
-    box.appendChild(u);
-    li.appendChild(box);
-
     const chevron = icons.el('chevron-down', 13);
     chevron.classList.add('page-chevron');
     li.appendChild(chevron);
 
-    li.onclick = async function () {
+    li.appendChild(icons.el('globe', 13));
+
+    const title = document.createElement('span');
+    title.className = 'group-title';
+    const aliasVal = (aliases && aliases.pages[g.pageKey] || '').trim();
+    title.textContent = aliasVal || g.pageTitle || g.pageKey;
+    li.appendChild(title);
+
+    const count = document.createElement('span');
+    count.className = 'page-count';
+    const n = g.marks.length;
+    count.textContent = n + (n === 1 ? ' mark · ' : ' marks · ')
+      + time.formatRelativeTime(g.lastActivity, Date.now());
+    li.appendChild(count);
+
+    li.onclick = async function (e) {
+      if (e.target.closest('button')) return;
       if (collapsedPages.has(g.pageKey)) collapsedPages.delete(g.pageKey);
       else collapsedPages.add(g.pageKey);
       await render();
@@ -367,17 +336,14 @@
   async function renderAll(list, empty) {
     const allData = await storage.getAllPageData();
     const aliases = await storage.getAliases();
-    const domains = marks.groupMarksByDomain(allData);
-    currentDomains = domains;
+    const pages = marks.groupMarksByPage(allData);
     list.innerHTML = '';
-    empty.classList.toggle('hidden', domains.length > 0);
-    document.getElementById('all-toolbar').classList.toggle('hidden', domains.length === 0);
-    for (const d of domains) {
-      list.appendChild(domainHeadEl(d));
-      if (collapsedDomains.has(d.domain)) continue;
-      for (const g of d.pages) {
-        list.appendChild(pageHeadEl(g, aliases));
-        if (collapsedPages.has(g.pageKey)) continue;
+    empty.classList.toggle('hidden', pages.length > 0);
+    for (const g of pages) {
+      list.appendChild(pageHeadEl(g, aliases));
+      if (collapsedPages.has(g.pageKey)) {
+        list.appendChild(allMarkRow(g.recentMark, false));
+      } else {
         for (const mark of g.marks) list.appendChild(allMarkRow(mark));
       }
     }
@@ -393,7 +359,6 @@
     const empty = document.getElementById('empty');
     const restricted = document.getElementById('restricted');
     document.getElementById('all-footer').classList.toggle('hidden', view !== 'all');
-    if (view !== 'all') document.getElementById('all-toolbar').classList.add('hidden');
     if (view === 'all') {
       restricted.classList.add('hidden');
       await renderAll(list, empty);
@@ -433,18 +398,9 @@
   async function init() {
     mountStaticIcons();
     document.getElementById('manager-btn').onclick = function () { browser.openOptionsPage(); };
-    document.getElementById('collapse-all-btn').onclick = function () {
-      for (const d of currentDomains) collapsedDomains.add(d.domain);
-      render();
-    };
-    document.getElementById('expand-all-btn').onclick = function () {
-      collapsedDomains.clear();
-      collapsedPages.clear();
-      render();
-    };
     document.getElementById('all-btn').onclick = function () {
       view = (view === 'all') ? 'page' : 'all';
-      if (view === 'all') { collapsedDomains.clear(); collapsedPages.clear(); }
+      if (view === 'all') collapsedPages.clear();
       render();
     };
     const tab = await browser.getActiveTab();
