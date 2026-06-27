@@ -242,6 +242,7 @@
     });
     li.appendChild(block.el);
     li.appendChild(renameBtn(!!aliasVal, function () { block.edit(); }));
+    li.appendChild(tagsControl(p.pageKey));
 
     function toggle() {
       if (collapsedPages.has(p.pageKey)) collapsedPages.delete(p.pageKey);
@@ -254,6 +255,59 @@
       toggle();
     };
     return li;
+  }
+
+  function showAddTagInput(wrap, addBtn, pageKey) {
+    addBtn.classList.add('hidden');
+    const input = document.createElement('input');
+    input.className = 'tag-input';
+    input.setAttribute('list', 'tag-suggestions');
+    input.placeholder = 'tag…';
+    let done = false;
+    function commit(save) {
+      if (done) return;
+      done = true;
+      const v = input.value.trim();
+      if (save && v) { storage.addPageTag(pageKey, v).then(reload); }
+      else { input.remove(); addBtn.classList.remove('hidden'); }
+    }
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') commit(true);
+      else if (e.key === 'Escape') commit(false);
+    });
+    input.addEventListener('blur', function () { commit(true); });
+    wrap.insertBefore(input, addBtn);
+    setTimeout(function () { input.focus(); }, 0);
+  }
+
+  function tagsControl(pageKey) {
+    const wrap = document.createElement('span');
+    wrap.className = 'tags';
+    const cur = (tagsData.pages && tagsData.pages[pageKey]) || [];
+    for (const t of cur) {
+      const chip = document.createElement('span');
+      chip.className = 'tag-chip';
+      const label = document.createElement('span');
+      label.className = 'tag-label';
+      label.textContent = t;
+      chip.appendChild(label);
+      const x = document.createElement('button');
+      x.className = 'tag-x';
+      x.title = 'Remove tag';
+      x.textContent = '×';
+      x.onclick = function () { storage.removePageTag(pageKey, t).then(reload); };
+      chip.appendChild(x);
+      wrap.appendChild(chip);
+    }
+    if (cur.length < 3) {
+      const add = document.createElement('button');
+      add.className = 'tag-add';
+      add.title = 'Add tag';
+      add.appendChild(icons.el('plus', 12));
+      add.onclick = function () { showAddTagInput(wrap, add, pageKey); };
+      wrap.appendChild(add);
+    }
+    return wrap;
   }
 
   function tagHead(group) {
