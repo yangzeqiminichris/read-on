@@ -96,6 +96,25 @@ test('groupMarksByPage 组内按 createdAt 升序，组间按最近活动倒序'
   assert.strictEqual(groups[0].lastActivity, 900);
 });
 
+test('groupMarksByPage 暴露 recentMark（该页 updatedAt 最大的 mark）', () => {
+  function mk(id, created, updated) {
+    return { id: id, name: id, pageKey: 'a.com\p', pageTitle: 'A', pageURL: 'https://a.com/p',
+             note: '', createdAt: created, updatedAt: updated,
+             scrollPosition: 0, viewportHeight: 1, contentHeight: 2,
+             strategy: 'page-ratio', anchorText: '', scrollContainerSelector: null };
+  }
+  const all = {
+    'a.com\p': { pageKey: 'a.com/p', nextSeq: 4, marks: [
+      mk('a1', 100, 120),
+      mk('a2', 200, 500),
+      mk('a3', 300, 350),
+    ] },
+  };
+  const groups = M.groupMarksByPage(all);
+  assert.strictEqual(groups[0].recentMark.id, 'a2');
+  assert.deepStrictEqual(groups[0].marks.map(function (m) { return m.id; }), ['a1', 'a2', 'a3']);
+});
+
 test('normalizeImport 接受 {pages} 与裸 map，拒绝非法', () => {
   const pd = { pageKey: 'x.com/a', nextSeq: 1, marks: [] };
   assert.deepStrictEqual(M.normalizeImport({ pages: { 'x.com/a': pd } }), { 'x.com/a': pd });

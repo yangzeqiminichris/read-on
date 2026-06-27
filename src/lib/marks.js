@@ -72,6 +72,7 @@
         pageTitle: recent.pageTitle,
         pageURL: recent.pageURL,
         marks: sorted,
+        recentMark: recent,
         lastActivity: recent.updatedAt,
       });
     }
