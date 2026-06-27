@@ -247,14 +247,6 @@ ul#mark-list { list-style: none; margin: 0; padding: 0 9px 10px; }
   border-color: var(--active);
 }
 
-.group-head {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 14px 6px 6px;
-}
-.group-head:first-child { padding-top: 4px; }
-.group-head svg { color: var(--text-muted); flex-shrink: 0; }
 .group-meta { min-width: 0; }
 .group-title {
   font-size: 12px;
