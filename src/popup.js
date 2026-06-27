@@ -248,27 +248,6 @@
     return li;
   }
 
-  function groupHeadEl(g, aliases) {
-    const li = document.createElement('li');
-    li.className = 'group-head';
-    li.appendChild(icons.el('globe', 14));
-    const box = document.createElement('div');
-    box.className = 'group-meta';
-    const aliasVal = (aliases && aliases.pages[g.pageKey] || '').trim();
-    const t = document.createElement('div');
-    t.className = 'group-title';
-    t.textContent = aliasVal || g.pageTitle || g.pageKey;
-    const u = document.createElement('div');
-    u.className = 'group-url';
-    u.textContent = aliasVal
-      ? (g.pageTitle ? g.pageTitle + ' · ' + g.pageKey : g.pageKey)
-      : g.pageKey;
-    box.appendChild(t);
-    box.appendChild(u);
-    li.appendChild(box);
-    return li;
-  }
-
   function allMarkRow(mark) {
     const li = document.createElement('li');
     li.className = 'mark-row';
@@ -365,6 +344,40 @@
     li.onclick = async function () {
       if (collapsedDomains.has(d.domain)) collapsedDomains.delete(d.domain);
       else collapsedDomains.add(d.domain);
+      await render();
+    };
+    return li;
+  }
+
+  function pageHeadEl(g, aliases) {
+    const li = document.createElement('li');
+    li.className = 'page-head';
+    if (collapsedPages.has(g.pageKey)) li.classList.add('collapsed');
+
+    li.appendChild(icons.el('globe', 13));
+
+    const box = document.createElement('div');
+    box.className = 'group-meta';
+    const aliasVal = (aliases && aliases.pages[g.pageKey] || '').trim();
+    const t = document.createElement('div');
+    t.className = 'group-title';
+    t.textContent = aliasVal || g.pageTitle || g.pageKey;
+    const u = document.createElement('div');
+    u.className = 'group-url';
+    u.textContent = aliasVal
+      ? (g.pageTitle ? g.pageTitle + ' · ' + g.pageKey : g.pageKey)
+      : g.pageKey;
+    box.appendChild(t);
+    box.appendChild(u);
+    li.appendChild(box);
+
+    const chevron = icons.el('chevron-down', 13);
+    chevron.classList.add('page-chevron');
+    li.appendChild(chevron);
+
+    li.onclick = async function () {
+      if (collapsedPages.has(g.pageKey)) collapsedPages.delete(g.pageKey);
+      else collapsedPages.add(g.pageKey);
       await render();
     };
     return li;
