@@ -4,7 +4,8 @@ const icons = require('../src/lib/icons.js');
 
 test('icons.data 含所需图标且为非空字符串', () => {
   const ids = ['bookmark', 'plus', 'play', 'rotate-cw', 'bookmark-plus',
-               'chevron-down', 'trash-2', 'square-pen', 'globe', 'list'];
+               'chevron-down', 'trash-2', 'square-pen', 'globe', 'list',
+               'search', 'download', 'upload'];
   for (const id of ids) {
     assert.ok(typeof icons.data[id] === 'string' && icons.data[id].length > 0, id);
   }
