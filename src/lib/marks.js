@@ -79,7 +79,31 @@
     return groups;
   }
 
+  function domainOf(pageKey) {
+    const i = pageKey.indexOf('/');
+    return i === -1 ? pageKey : pageKey.slice(0, i);
+  }
+
+  function groupMarksByDomain(allData) {
+    const pageGroups = groupMarksByPage(allData);
+    const byDomain = {};
+    const order = [];
+    for (const g of pageGroups) {
+      const d = domainOf(g.pageKey);
+      if (!byDomain[d]) { byDomain[d] = { domain: d, markCount: 0, lastActivity: 0, pages: [] }; order.push(d); }
+      const entry = byDomain[d];
+      entry.pages.push(g);
+      entry.markCount += g.marks.length;
+      if (g.lastActivity > entry.lastActivity) entry.lastActivity = g.lastActivity;
+    }
+    const domains = order.map(function (d) { return byDomain[d]; });
+    for (const e of domains) e.pages.sort(function (a, b) { return b.lastActivity - a.lastActivity; });
+    domains.sort(function (a, b) { return b.lastActivity - a.lastActivity; });
+    return domains;
+  }
+
   return {
     pageKeyFromURL, makeDefaultName, emptyPageData, createMark, removeMark, groupMarksByPage,
+    domainOf, groupMarksByDomain,
   };
 });

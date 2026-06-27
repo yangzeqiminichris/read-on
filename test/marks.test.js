@@ -95,3 +95,26 @@ test('groupMarksByPage 组内按 createdAt 升序，组间按最近活动倒序'
   assert.strictEqual(groups[1].pageURL, 'https://a.com/p');
   assert.strictEqual(groups[0].lastActivity, 900);
 });
+
+test('domainOf 取 hostname', () => {
+  assert.strictEqual(M.domainOf('x.com/a/b'), 'x.com');
+  assert.strictEqual(M.domainOf('x.com'), 'x.com');
+});
+
+test('groupMarksByDomain 按域名归并并排序', () => {
+  function mk(id, created, updated, pk, title, url) {
+    return { id: id, name: id, pageKey: pk, pageTitle: title, pageURL: url, note: '',
+             createdAt: created, updatedAt: updated, scrollPosition: 0, viewportHeight: 1, contentHeight: 2,
+             strategy: 'page-ratio', anchorText: '', scrollContainerSelector: null };
+  }
+  const all = {
+    'a.com/p1': { pageKey: 'a.com/p1', nextSeq: 2, marks: [ mk('a1', 100, 150, 'a.com/p1', 'P1', 'https://a.com/p1') ] },
+    'a.com/p2': { pageKey: 'a.com/p2', nextSeq: 2, marks: [ mk('a2', 120, 120, 'a.com/p2', 'P2', 'https://a.com/p2') ] },
+    'b.com/q':  { pageKey: 'b.com/q',  nextSeq: 2, marks: [ mk('b1', 50, 900, 'b.com/q', 'Q', 'https://b.com/q') ] },
+  };
+  const domains = M.groupMarksByDomain(all);
+  assert.deepStrictEqual(domains.map(function (d) { return d.domain; }), ['b.com', 'a.com']);
+  const a = domains[1];
+  assert.strictEqual(a.markCount, 2);
+  assert.deepStrictEqual(a.pages.map(function (p) { return p.pageKey; }), ['a.com/p1', 'a.com/p2']);
+});
