@@ -7,6 +7,8 @@
   let pageMarkable = false;
   let view = 'page';
   const expandedIds = new Set();
+  const collapsedDomains = new Set();
+  const collapsedPages   = new Set();
 
   const UNREACHABLE_MSG = "Can't reach this page. Reload it and try again.";
 
@@ -323,12 +325,18 @@
   async function renderAll(list, empty) {
     const allData = await storage.getAllPageData();
     const aliases = await storage.getAliases();
-    const groups = marks.groupMarksByPage(allData);
+    const domains = marks.groupMarksByDomain(allData);
     list.innerHTML = '';
-    empty.classList.toggle('hidden', groups.length > 0);
-    for (const g of groups) {
-      list.appendChild(groupHeadEl(g, aliases));
-      for (const mark of g.marks) list.appendChild(allMarkRow(mark));
+    empty.classList.toggle('hidden', domains.length > 0);
+    list.appendChild(toolbarEl(domains));
+    for (const d of domains) {
+      list.appendChild(domainHeadEl(d));
+      if (collapsedDomains.has(d.domain)) continue;
+      for (const g of d.pages) {
+        list.appendChild(pageHeadEl(g, aliases));
+        if (collapsedPages.has(g.pageKey)) continue;
+        for (const mark of g.marks) list.appendChild(allMarkRow(mark));
+      }
     }
     const footer = document.createElement('li');
     footer.className = 'manager-link';
