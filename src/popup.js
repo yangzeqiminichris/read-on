@@ -57,6 +57,13 @@
     }
   }
 
+  // All Marks 里的跳转：在新标签页打开目标页，由其 content script 消费待跳转后定位。
+  async function jumpToNewTab(mark) {
+    await storage.setPendingJump(mark.pageKey, mark);
+    await browser.openTab(mark.pageURL);
+    // 新标签页获得焦点后弹窗会自动关闭，无需显式 close。
+  }
+
   function buildDetail(mark) {
     const detail = document.createElement('div');
     detail.className = 'row-detail';
@@ -293,8 +300,8 @@
 
     main.appendChild(meta);
 
-    const jump = makeIconButton('play', 'jump', 'Jump to this mark');
-    jump.onclick = function () { jumpTo(mark); };
+    const jump = makeIconButton('play', 'jump', 'Jump to this mark (new tab)');
+    jump.onclick = function () { jumpToNewTab(mark); };
     main.appendChild(jump);
 
     li.appendChild(main);
