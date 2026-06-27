@@ -129,6 +129,27 @@ test('deleteMarks 跨页批量删除，nextSeq 不变', async () => {
   assert.strictEqual(store['y.com/b'].marks.length, 0);
 });
 
+test('getAliases 缺省返回空结构', async () => {
+  installFakeChrome();
+  assert.deepStrictEqual(await storage.getAliases(), { domains: {}, pages: {} });
+});
+
+test('setDomainAlias 设置与清除（空白清除）', async () => {
+  installFakeChrome();
+  await storage.setDomainAlias('x.com', 'My X');
+  assert.strictEqual((await storage.getAliases()).domains['x.com'], 'My X');
+  await storage.setDomainAlias('x.com', '   ');
+  assert.strictEqual((await storage.getAliases()).domains['x.com'], undefined);
+});
+
+test('setPageAlias 独立于 domains', async () => {
+  installFakeChrome();
+  await storage.setPageAlias('x.com/a', 'Intro');
+  const al = await storage.getAliases();
+  assert.strictEqual(al.pages['x.com/a'], 'Intro');
+  assert.deepStrictEqual(al.domains, {});
+});
+
 test('importMerge 合并写回并返回新增数', async () => {
   const store = installFakeChrome();
   await storage.saveMark('x.com/a', { snapshot: snap, id: 'a', now: 1 });

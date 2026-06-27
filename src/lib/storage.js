@@ -108,9 +108,28 @@
     return countMarks(merged) - before;
   }
 
+  const ALIASES_KEY = '_readon_aliases';
+
+  async function getAliases() {
+    const data = await browser.storageGet([ALIASES_KEY]);
+    const a = data[ALIASES_KEY] || {};
+    return { domains: a.domains || {}, pages: a.pages || {} };
+  }
+
+  async function setAliasField(field, key, alias) {
+    const a = await getAliases();
+    const v = (alias || '').trim();
+    if (v) a[field][key] = v; else delete a[field][key];
+    await browser.storageSet({ [ALIASES_KEY]: a });
+  }
+
+  async function setDomainAlias(domain, alias) { return setAliasField('domains', domain, alias); }
+  async function setPageAlias(pageKey, alias) { return setAliasField('pages', pageKey, alias); }
+
   return {
     getPageData, saveMark, updateMarkPosition, setMarkName, deleteMark, setNote,
     getAllPageData, setPendingJump, getPendingJump, clearPendingJump,
     deleteMarks, importMerge,
+    getAliases, setDomainAlias, setPageAlias,
   };
 });
