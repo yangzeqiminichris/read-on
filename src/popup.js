@@ -342,6 +342,34 @@
     return li;
   }
 
+  function domainHeadEl(d) {
+    const li = document.createElement('li');
+    li.className = 'domain-head';
+    if (collapsedDomains.has(d.domain)) li.classList.add('collapsed');
+
+    const chevron = icons.el('chevron-down', 14);
+    chevron.classList.add('domain-chevron');
+    li.appendChild(chevron);
+
+    const label = document.createElement('span');
+    label.className = 'domain-label';
+    label.textContent = d.domain;
+
+    const count = document.createElement('span');
+    count.className = 'domain-count';
+    count.textContent = d.markCount + (d.markCount === 1 ? ' mark' : ' marks');
+
+    li.appendChild(label);
+    li.appendChild(count);
+
+    li.onclick = async function () {
+      if (collapsedDomains.has(d.domain)) collapsedDomains.delete(d.domain);
+      else collapsedDomains.add(d.domain);
+      await render();
+    };
+    return li;
+  }
+
   async function renderPage(list, empty, editId) {
     const pageData = await storage.getPageData(currentPageKey);
     list.innerHTML = '';
