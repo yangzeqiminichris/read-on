@@ -126,10 +126,47 @@
   async function setDomainAlias(domain, alias) { return setAliasField('domains', domain, alias); }
   async function setPageAlias(pageKey, alias) { return setAliasField('pages', pageKey, alias); }
 
+  const TAGS_KEY = '_readon_tags';
+
+  async function getTags() {
+    const data = await browser.storageGet([TAGS_KEY]);
+    const t = data[TAGS_KEY] || {};
+    return { pages: t.pages || {} };
+  }
+
+  async function getAllTags() {
+    const t = await getTags();
+    const set = {};
+    for (const k in t.pages) for (const name of t.pages[k]) set[name] = true;
+    return Object.keys(set).sort();
+  }
+
+  async function addPageTag(pageKey, tag) {
+    const v = (tag || '').trim();
+    if (!v) return false;
+    const t = await getTags();
+    const cur = t.pages[pageKey] || [];
+    if (cur.indexOf(v) !== -1) return false;
+    if (cur.length >= 3) return false;
+    t.pages[pageKey] = cur.concat([v]);
+    await browser.storageSet({ [TAGS_KEY]: t });
+    return true;
+  }
+
+  async function removePageTag(pageKey, tag) {
+    const t = await getTags();
+    const cur = t.pages[pageKey];
+    if (!cur) return;
+    const next = cur.filter(function (x) { return x !== tag; });
+    if (next.length) t.pages[pageKey] = next; else delete t.pages[pageKey];
+    await browser.storageSet({ [TAGS_KEY]: t });
+  }
+
   return {
     getPageData, saveMark, updateMarkPosition, setMarkName, deleteMark, setNote,
     getAllPageData, setPendingJump, getPendingJump, clearPendingJump,
     deleteMarks, importMerge,
     getAliases, setDomainAlias, setPageAlias,
+    getTags, getAllTags, addPageTag, removePageTag,
   };
 });

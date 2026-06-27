@@ -163,3 +163,38 @@ test('importMerge 合并写回并返回新增数', async () => {
   assert.deepStrictEqual(store['x.com/a'].marks.map(function (m) { return m.id; }), ['a', 'b']);
   assert.ok(store['y.com/c']);
 });
+
+test('getTags 在无数据时返回空结构', async () => {
+  installFakeChrome();
+  assert.deepStrictEqual(await storage.getTags(), { pages: {} });
+});
+
+test('addPageTag 添加、去重、修剪、限 3 个', async () => {
+  const store = installFakeChrome();
+  assert.strictEqual(await storage.addPageTag('x.com/a', '  LangChain  '), true);
+  assert.deepStrictEqual(store['_readon_tags'].pages['x.com/a'], ['LangChain']);
+  assert.strictEqual(await storage.addPageTag('x.com/a', 'LangChain'), false); // dup
+  assert.strictEqual(await storage.addPageTag('x.com/a', ''), false);          // empty
+  await storage.addPageTag('x.com/a', 'b');
+  await storage.addPageTag('x.com/a', 'c');
+  assert.strictEqual(await storage.addPageTag('x.com/a', 'd'), false);         // 4th rejected
+  assert.strictEqual(store['_readon_tags'].pages['x.com/a'].length, 3);
+});
+
+test('removePageTag 移除，清空后删除该页条目', async () => {
+  const store = installFakeChrome();
+  await storage.addPageTag('x.com/a', 'one');
+  await storage.addPageTag('x.com/a', 'two');
+  await storage.removePageTag('x.com/a', 'one');
+  assert.deepStrictEqual(store['_readon_tags'].pages['x.com/a'], ['two']);
+  await storage.removePageTag('x.com/a', 'two');
+  assert.strictEqual('x.com/a' in store['_readon_tags'].pages, false);
+});
+
+test('getAllTags 返回去重排序的并集', async () => {
+  installFakeChrome();
+  await storage.addPageTag('x.com/a', 'zeta');
+  await storage.addPageTag('x.com/a', 'alpha');
+  await storage.addPageTag('y.com/b', 'alpha');
+  assert.deepStrictEqual(await storage.getAllTags(), ['alpha', 'zeta']);
+});
