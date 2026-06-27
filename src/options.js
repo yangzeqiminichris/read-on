@@ -7,6 +7,13 @@
   const collapsedDomains = new Set();
   const collapsedPages = new Set();
   let currentGroups = [];
+  let viewMode = 'domain';
+  let tagsData = { pages: {} };
+  let allTags = [];
+  const collapsedTags = new Set();
+
+  function tagKey(tag) { return tag === null ? '' : tag; }
+
   let query = '';
   let allData = {};
   let aliases = { domains: {}, pages: {} };
@@ -75,6 +82,8 @@
   async function reload() {
     allData = await storage.getAllPageData();
     aliases = await storage.getAliases();
+    tagsData = await storage.getTags();
+    allTags = await storage.getAllTags();
     render();
   }
 
@@ -247,6 +256,42 @@
     return li;
   }
 
+  function tagHead(group) {
+    const li = document.createElement('li');
+    li.className = 'domain-head';
+    li.appendChild(icons.el('tag', 16));
+
+    const box = document.createElement('div');
+    box.className = 'alias-block';
+    const name = document.createElement('div');
+    name.className = 'domain-name';
+    if (group.tag === null) { name.textContent = 'Untagged'; name.classList.add('untagged'); }
+    else name.textContent = group.tag;
+    box.appendChild(name);
+    li.appendChild(box);
+
+    const spacer = document.createElement('span');
+    spacer.className = 'head-spacer';
+    li.appendChild(spacer);
+    const count = document.createElement('span');
+    count.className = 'domain-count';
+    count.textContent = group.markCount + (group.markCount === 1 ? ' mark' : ' marks');
+    li.appendChild(count);
+
+    const key = tagKey(group.tag);
+    function toggle() {
+      if (collapsedTags.has(key)) collapsedTags.delete(key);
+      else collapsedTags.add(key);
+      render();
+    }
+    li.appendChild(chevronToggle(collapsedTags.has(key), toggle));
+    li.onclick = function (e) {
+      if (e.target.closest('button, input')) return;
+      toggle();
+    };
+    return li;
+  }
+
   function markRow(mark) {
     const li = document.createElement('li');
     li.className = 'mark-row';
@@ -358,18 +403,37 @@
     const empty = document.getElementById('empty');
     list.innerHTML = '';
     const searching = !!query.trim();
-    const groups = marks.groupMarksByDomain(filteredData());
+    const data = filteredData();
+    const groups = viewMode === 'tag'
+      ? marks.groupMarksByTag(data, tagsData)
+      : marks.groupMarksByDomain(data);
     currentGroups = groups;
     empty.classList.toggle('hidden', groups.length > 0);
-    document.getElementById('all-toolbar').classList.toggle('hidden', searching || groups.length === 0);
+    document.getElementById('all-toolbar').classList.toggle('hidden', groups.length === 0);
+    document.getElementById('collapse-expand-group').classList.toggle('hidden', searching || groups.length === 0);
+    document.getElementById('view-domain-btn').classList.toggle('active', viewMode === 'domain');
+    document.getElementById('view-tag-btn').classList.toggle('active', viewMode === 'tag');
+    refreshTagSuggestions();
     for (const g of groups) {
-      list.appendChild(domainHead(g));
-      if (!searching && collapsedDomains.has(g.domain)) continue;
+      const collapsedSet = viewMode === 'tag' ? collapsedTags : collapsedDomains;
+      const headKey = viewMode === 'tag' ? tagKey(g.tag) : g.domain;
+      list.appendChild(viewMode === 'tag' ? tagHead(g) : domainHead(g));
+      if (!searching && collapsedSet.has(headKey)) continue;
       for (const p of g.pages) {
         list.appendChild(pageHead(p));
         if (!searching && collapsedPages.has(p.pageKey)) continue;
         for (const m of p.marks) list.appendChild(markRow(m));
       }
+    }
+  }
+
+  function refreshTagSuggestions() {
+    const dl = document.getElementById('tag-suggestions');
+    dl.innerHTML = '';
+    for (const t of allTags) {
+      const opt = document.createElement('option');
+      opt.value = t;
+      dl.appendChild(opt);
     }
   }
 
@@ -423,14 +487,18 @@
     });
     document.getElementById('export-btn').onclick = onExport;
     document.getElementById('collapse-all-btn').onclick = function () {
-      for (const g of currentGroups) collapsedDomains.add(g.domain);
+      const set = viewMode === 'tag' ? collapsedTags : collapsedDomains;
+      for (const g of currentGroups) set.add(viewMode === 'tag' ? tagKey(g.tag) : g.domain);
       render();
     };
     document.getElementById('expand-all-btn').onclick = function () {
       collapsedDomains.clear();
       collapsedPages.clear();
+      collapsedTags.clear();
       render();
     };
+    document.getElementById('view-domain-btn').onclick = function () { viewMode = 'domain'; render(); };
+    document.getElementById('view-tag-btn').onclick = function () { viewMode = 'tag'; render(); };
     const fileInput = document.getElementById('file-input');
     document.getElementById('import-btn').onclick = function () { fileInput.click(); };
     fileInput.addEventListener('change', function () {

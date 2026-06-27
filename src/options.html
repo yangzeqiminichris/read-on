@@ -20,8 +20,14 @@
     </div>
     <div id="batchbar" class="batchbar hidden"></div>
     <div id="all-toolbar" class="all-toolbar hidden">
-      <button id="collapse-all-btn" class="toolbar-btn">Collapse All</button>
-      <button id="expand-all-btn" class="toolbar-btn">Expand All</button>
+      <div class="view-toggle">
+        <button id="view-domain-btn" class="view-btn active">By domain</button>
+        <button id="view-tag-btn" class="view-btn">By tag</button>
+      </div>
+      <span id="collapse-expand-group" class="ce-group">
+        <button id="collapse-all-btn" class="toolbar-btn">Collapse All</button>
+        <button id="expand-all-btn" class="toolbar-btn">Expand All</button>
+      </span>
     </div>
     <div id="scroll">
       <ul id="list"></ul>
@@ -32,6 +38,7 @@
     </div>
     <input id="file-input" type="file" accept=".json,application/json" class="hidden">
     <div id="toast" class="toast hidden"></div>
+    <datalist id="tag-suggestions"></datalist>
   </main>
 
   <script src="lib/positioning.js"></script>
