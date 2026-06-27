@@ -4,9 +4,21 @@
   "version": "0.1.0",
   "description": "Bookmark a scroll position on any page and pick up reading where you left off.",
   "permissions": ["storage", "tabs", "scripting", "activeTab"],
+  "icons": {
+    "16":  "src/icons/icon16.png",
+    "32":  "src/icons/icon32.png",
+    "48":  "src/icons/icon48.png",
+    "128": "src/icons/icon128.png"
+  },
   "action": {
     "default_popup": "src/popup.html",
-    "default_title": "ReadOn"
+    "default_title": "ReadOn",
+    "default_icon": {
+      "16":  "src/icons/icon16.png",
+      "32":  "src/icons/icon32.png",
+      "48":  "src/icons/icon48.png",
+      "128": "src/icons/icon128.png"
+    }
   },
   "content_scripts": [
     {
