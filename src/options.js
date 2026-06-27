@@ -6,6 +6,7 @@
   const selectedIds = new Set();
   let query = '';
   let allData = {};
+  let aliases = { domains: {}, pages: {} };
 
   function pad2(n) { return n < 10 ? '0' + n : '' + n; }
 
@@ -60,6 +61,7 @@
 
   async function reload() {
     allData = await storage.getAllPageData();
+    aliases = await storage.getAliases();
     render();
   }
 
@@ -106,6 +108,60 @@
     await reload();
   }
 
+  function aliasNameBlock(primaryClass, currentAlias, fallback, sub, onSave) {
+    const block = document.createElement('div');
+    block.className = 'alias-block';
+    function showStatic() {
+      block.innerHTML = '';
+      const p = document.createElement('div');
+      p.className = primaryClass;
+      p.textContent = currentAlias || fallback;
+      block.appendChild(p);
+      if (sub) {
+        const s = document.createElement('div');
+        s.className = 'alias-sub';
+        s.textContent = sub;
+        block.appendChild(s);
+      }
+    }
+    function showEdit() {
+      block.innerHTML = '';
+      const input = document.createElement('input');
+      input.className = 'alias-input';
+      input.value = currentAlias;
+      input.placeholder = fallback;
+      let done = false;
+      function commit() {
+        if (done) return;
+        done = true;
+        onSave(input.value.trim());
+      }
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') commit();
+        else if (e.key === 'Escape') { done = true; render(); }
+      });
+      input.addEventListener('blur', commit);
+      block.appendChild(input);
+      const s = document.createElement('div');
+      s.className = 'alias-sub';
+      s.textContent = sub || fallback;
+      block.appendChild(s);
+      setTimeout(function () { input.focus(); input.select(); }, 0);
+    }
+    showStatic();
+    return { el: block, edit: showEdit };
+  }
+
+  function renameBtn(hasAlias, onClick) {
+    const b = document.createElement('button');
+    b.className = 'rename-btn' + (hasAlias ? '' : ' empty');
+    b.title = hasAlias ? 'Rename' : 'Add a name';
+    b.setAttribute('aria-label', b.title);
+    b.appendChild(icons.el('square-pen', 14));
+    b.onclick = onClick;
+    return b;
+  }
+
   function domainHead(group) {
     const li = document.createElement('li');
     li.className = 'domain-head';
@@ -120,13 +176,20 @@
     };
     li.appendChild(cb);
     li.appendChild(icons.el('globe', 16));
-    const name = document.createElement('span');
-    name.className = 'domain-name';
-    name.textContent = group.domain;
+
+    const aliasVal = (aliases.domains[group.domain] || '').trim();
+    const block = aliasNameBlock('domain-name', aliasVal, group.domain, aliasVal ? group.domain : '', function (v) {
+      storage.setDomainAlias(group.domain, v).then(reload);
+    });
+    li.appendChild(block.el);
+    li.appendChild(renameBtn(!!aliasVal, function () { block.edit(); }));
+
+    const spacer = document.createElement('span');
+    spacer.className = 'head-spacer';
+    li.appendChild(spacer);
     const count = document.createElement('span');
     count.className = 'domain-count';
     count.textContent = group.markCount + (group.markCount === 1 ? ' mark' : ' marks');
-    li.appendChild(name);
     li.appendChild(count);
     return li;
   }
@@ -134,15 +197,18 @@
   function pageHead(p) {
     const li = document.createElement('li');
     li.className = 'page-head';
-    const t = document.createElement('span');
-    t.className = 'page-title';
-    t.textContent = p.pageTitle || '';
-    const path = document.createElement('span');
-    path.className = 'page-path';
     const slash = p.pageKey.indexOf('/');
-    path.textContent = ' · ' + (slash === -1 ? '/' : p.pageKey.slice(slash));
-    li.appendChild(t);
-    li.appendChild(path);
+    const path = (slash === -1 ? '/' : p.pageKey.slice(slash));
+    const aliasVal = (aliases.pages[p.pageKey] || '').trim();
+    const fallback = p.pageTitle || path;
+    const sub = aliasVal
+      ? (p.pageTitle ? p.pageTitle + ' · ' + path : path)
+      : path;
+    const block = aliasNameBlock('page-title', aliasVal, fallback, sub, function (v) {
+      storage.setPageAlias(p.pageKey, v).then(reload);
+    });
+    li.appendChild(block.el);
+    li.appendChild(renameBtn(!!aliasVal, function () { block.edit(); }));
     return li;
   }
 

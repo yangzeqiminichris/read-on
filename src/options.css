@@ -69,3 +69,15 @@ ul#list { list-style: none; margin: 0; padding: 0; }
 .hidden { display: none; }
 
 .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--accent); color: var(--accent-on); padding: 8px 16px; border-radius: var(--radius-button); font-size: 13px; }
+
+.head-spacer { flex: 1; }
+.alias-block { min-width: 0; flex: 1; }
+.domain-head .domain-name, .alias-block .domain-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alias-block .page-title { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alias-sub { font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alias-input { font-family: inherit; font-size: 13px; font-weight: 500; width: 220px; max-width: 100%; padding: 2px 7px; border: 1px solid var(--accent); border-radius: 6px; background: var(--surface); color: var(--text); }
+.alias-input:focus { outline: none; }
+.rename-btn { display: inline-flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text-muted); padding: 3px; border-radius: 6px; cursor: pointer; flex-shrink: 0; }
+.rename-btn:hover { background: var(--track); color: var(--accent); }
+.rename-btn.empty { color: color-mix(in srgb, var(--text-muted) 55%, transparent); }
+.page-head { display: flex; align-items: center; gap: 6px; }
