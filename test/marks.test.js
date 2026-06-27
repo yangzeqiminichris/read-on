@@ -136,6 +136,14 @@ test('domainOf 取 hostname', () => {
   assert.strictEqual(M.domainOf('x.com'), 'x.com');
 });
 
+test('aliasOr 有值用值、空白/缺失/非串回退', () => {
+  assert.strictEqual(M.aliasOr({ a: 'X' }, 'a', 'def'), 'X');
+  assert.strictEqual(M.aliasOr({ a: '  ' }, 'a', 'def'), 'def');
+  assert.strictEqual(M.aliasOr({}, 'a', 'def'), 'def');
+  assert.strictEqual(M.aliasOr(null, 'a', 'def'), 'def');
+  assert.strictEqual(M.aliasOr({ a: 5 }, 'a', 'def'), 'def');
+});
+
 test('groupMarksByDomain 按域名归并并排序', () => {
   function mk(id, created, updated, pk, title, url) {
     return { id: id, name: id, pageKey: pk, pageTitle: title, pageURL: url, note: '',

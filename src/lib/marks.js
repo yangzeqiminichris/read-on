@@ -142,8 +142,13 @@
     return { version: 1, exportedAt: now, pages: onlyPages(allData) };
   }
 
+  function aliasOr(map, key, fallback) {
+    if (map && typeof map[key] === 'string' && map[key].trim()) return map[key];
+    return fallback;
+  }
+
   return {
     pageKeyFromURL, makeDefaultName, emptyPageData, createMark, removeMark, groupMarksByPage,
-    domainOf, groupMarksByDomain, normalizeImport, mergeImport, buildExport,
+    domainOf, groupMarksByDomain, normalizeImport, mergeImport, buildExport, aliasOr,
   };
 });
