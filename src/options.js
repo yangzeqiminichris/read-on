@@ -6,6 +6,7 @@
   const selectedIds = new Set();
   const collapsedDomains = new Set();
   const collapsedPages = new Set();
+  let currentGroups = [];
   let query = '';
   let allData = {};
   let aliases = { domains: {}, pages: {} };
@@ -36,29 +37,6 @@
     b.appendChild(icons.el('chevron-down', 16));
     b.onclick = onClick;
     return b;
-  }
-
-  function toolbarEl(groups) {
-    const li = document.createElement('li');
-    li.className = 'all-toolbar';
-    const collapseBtn = document.createElement('button');
-    collapseBtn.className = 'toolbar-btn';
-    collapseBtn.textContent = 'Collapse All';
-    collapseBtn.onclick = function () {
-      for (const g of groups) collapsedDomains.add(g.domain);
-      render();
-    };
-    const expandBtn = document.createElement('button');
-    expandBtn.className = 'toolbar-btn';
-    expandBtn.textContent = 'Expand All';
-    expandBtn.onclick = function () {
-      collapsedDomains.clear();
-      collapsedPages.clear();
-      render();
-    };
-    li.appendChild(collapseBtn);
-    li.appendChild(expandBtn);
-    return li;
   }
 
   function filteredData() {
@@ -371,8 +349,9 @@
     list.innerHTML = '';
     const searching = !!query.trim();
     const groups = marks.groupMarksByDomain(filteredData());
+    currentGroups = groups;
     empty.classList.toggle('hidden', groups.length > 0);
-    if (!searching && groups.length) list.appendChild(toolbarEl(groups));
+    document.getElementById('all-toolbar').classList.toggle('hidden', searching || groups.length === 0);
     for (const g of groups) {
       list.appendChild(domainHead(g));
       if (!searching && collapsedDomains.has(g.domain)) continue;
@@ -433,6 +412,15 @@
       render();
     });
     document.getElementById('export-btn').onclick = onExport;
+    document.getElementById('collapse-all-btn').onclick = function () {
+      for (const g of currentGroups) collapsedDomains.add(g.domain);
+      render();
+    };
+    document.getElementById('expand-all-btn').onclick = function () {
+      collapsedDomains.clear();
+      collapsedPages.clear();
+      render();
+    };
     const fileInput = document.getElementById('file-input');
     document.getElementById('import-btn').onclick = function () { fileInput.click(); };
     fileInput.addEventListener('change', function () {

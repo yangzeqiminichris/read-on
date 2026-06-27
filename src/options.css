@@ -1,6 +1,9 @@
 * { box-sizing: border-box; }
+html, body { height: 100%; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 13px; line-height: 1.4; }
-.wrap { max-width: 680px; margin: 0 auto; padding: 24px 16px 64px; }
+.wrap { max-width: 680px; margin: 0 auto; padding: 24px 16px 0; height: 100vh; display: flex; flex-direction: column; }
+.opt-header, .search-box, .batchbar, .all-toolbar { flex-shrink: 0; }
+#scroll { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 64px; }
 .i { display: inline-flex; }
 
 .opt-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
@@ -66,7 +69,7 @@ ul#list { list-style: none; margin: 0; padding: 0; }
 .empty-icon { display: inline-flex; color: var(--text-muted); }
 #empty p { margin: 8px 0 0; color: var(--text-secondary); }
 
-.hidden { display: none; }
+.hidden { display: none !important; }
 
 .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--accent); color: var(--accent-on); padding: 8px 16px; border-radius: var(--radius-button); font-size: 13px; }
 
@@ -82,7 +85,7 @@ ul#list { list-style: none; margin: 0; padding: 0; }
 .rename-btn.empty { color: color-mix(in srgb, var(--text-muted) 55%, transparent); }
 .page-head { display: flex; align-items: center; gap: 6px; }
 
-.all-toolbar { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 8px 2px 4px; list-style: none; }
+.all-toolbar { display: flex; align-items: center; justify-content: flex-start; gap: 8px; padding: 12px 2px; border-bottom: 1px solid var(--border); }
 .toolbar-btn { display: inline-flex; align-items: center; justify-content: center; font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-button); padding: 6px 14px; cursor: pointer; }
 .toolbar-btn:hover { background: var(--row-hover); border-color: var(--accent); color: var(--accent); }
 .toolbar-btn:active { transform: scale(0.98); }

@@ -19,10 +19,16 @@
       <input id="search" type="text" placeholder="Search marks, notes, pages…">
     </div>
     <div id="batchbar" class="batchbar hidden"></div>
-    <ul id="list"></ul>
-    <div id="empty" class="hidden">
-      <span id="empty-icon" class="empty-icon"></span>
-      <p>No marks yet. Mark a spot while reading to see it here.</p>
+    <div id="all-toolbar" class="all-toolbar hidden">
+      <button id="collapse-all-btn" class="toolbar-btn">Collapse All</button>
+      <button id="expand-all-btn" class="toolbar-btn">Expand All</button>
+    </div>
+    <div id="scroll">
+      <ul id="list"></ul>
+      <div id="empty" class="hidden">
+        <span id="empty-icon" class="empty-icon"></span>
+        <p>No marks yet. Mark a spot while reading to see it here.</p>
+      </div>
     </div>
     <input id="file-input" type="file" accept=".json,application/json" class="hidden">
     <div id="toast" class="toast hidden"></div>
