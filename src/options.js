@@ -251,7 +251,7 @@
     }
     li.appendChild(chevronToggle(collapsedPages.has(p.pageKey), toggle));
     li.onclick = function (e) {
-      if (e.target.closest('button, input')) return;
+      if (e.target.closest('button, input, .tag-chip')) return;
       toggle();
     };
     return li;
@@ -294,6 +294,7 @@
       const x = document.createElement('button');
       x.className = 'tag-x';
       x.title = 'Remove tag';
+      x.setAttribute('aria-label', 'Remove tag');
       x.textContent = '×';
       x.onclick = function () { storage.removePageTag(pageKey, t).then(reload); };
       chip.appendChild(x);
