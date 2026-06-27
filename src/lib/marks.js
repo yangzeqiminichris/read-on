@@ -102,6 +102,31 @@
     return domains;
   }
 
+  function groupMarksByTag(allData, tags) {
+    const pageGroups = groupMarksByPage(allData);
+    const tagMap = (tags && tags.pages) || {};
+    const byTag = {};
+    const order = [];
+    const untagged = { tag: null, pages: [], markCount: 0 };
+    for (const g of pageGroups) {
+      const ts = tagMap[g.pageKey] || [];
+      if (ts.length === 0) {
+        untagged.pages.push(g);
+        untagged.markCount += g.marks.length;
+        continue;
+      }
+      for (const t of ts) {
+        if (!byTag[t]) { byTag[t] = { tag: t, pages: [], markCount: 0 }; order.push(t); }
+        byTag[t].pages.push(g);
+        byTag[t].markCount += g.marks.length;
+      }
+    }
+    const groups = order.map(function (t) { return byTag[t]; });
+    groups.sort(function (a, b) { return a.tag < b.tag ? -1 : (a.tag > b.tag ? 1 : 0); });
+    if (untagged.pages.length) groups.push(untagged);
+    return groups;
+  }
+
   function isPageData(v) {
     return v && Array.isArray(v.marks) && typeof v.pageKey === 'string';
   }
@@ -149,6 +174,6 @@
 
   return {
     pageKeyFromURL, makeDefaultName, emptyPageData, createMark, removeMark, groupMarksByPage,
-    domainOf, groupMarksByDomain, normalizeImport, mergeImport, buildExport, aliasOr,
+    domainOf, groupMarksByDomain, groupMarksByTag, normalizeImport, mergeImport, buildExport, aliasOr,
   };
 });

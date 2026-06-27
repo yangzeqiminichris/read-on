@@ -161,3 +161,39 @@ test('groupMarksByDomain 按域名归并并排序', () => {
   assert.strictEqual(a.markCount, 2);
   assert.deepStrictEqual(a.pages.map(function (p) { return p.pageKey; }), ['a.com/p1', 'a.com/p2']);
 });
+
+function pd(pageKey, title, marksArr) {
+  return { pageKey: pageKey, marks: marksArr };
+}
+function mk(id, createdAt, updatedAt, title) {
+  return { id: id, name: id, createdAt: createdAt, updatedAt: updatedAt,
+    pageTitle: title || 't', pageURL: 'https://' + 'x', scrollPosition: 0,
+    viewportHeight: 1, contentHeight: 2 };
+}
+
+test('groupMarksByTag 按标签分桶，未贴标签归 Untagged 末尾', () => {
+  const all = {
+    'a.com/1': pd('a.com/1', 'A', [mk('m1', 1, 10)]),
+    'b.com/2': pd('b.com/2', 'B', [mk('m2', 2, 20)]),
+    'c.com/3': pd('c.com/3', 'C', [mk('m3', 3, 30)]),
+  };
+  const tags = { pages: { 'a.com/1': ['zeta', 'alpha'], 'b.com/2': ['alpha'] } };
+  const groups = M.groupMarksByTag(all, tags);
+  assert.deepStrictEqual(groups.map(function (g) { return g.tag; }), ['alpha', 'zeta', null]);
+  const alpha = groups[0];
+  assert.strictEqual(alpha.markCount, 2);
+  assert.deepStrictEqual(alpha.pages.map(function (p) { return p.pageKey; }).sort(), ['a.com/1', 'b.com/2']);
+  assert.strictEqual(groups[2].markCount, 1);
+  assert.strictEqual(groups[2].pages[0].pageKey, 'c.com/3');
+});
+
+test('groupMarksByTag 全部未贴标签时只有一个 Untagged 组', () => {
+  const all = { 'a.com/1': pd('a.com/1', 'A', [mk('m1', 1, 10)]) };
+  const groups = M.groupMarksByTag(all, { pages: {} });
+  assert.strictEqual(groups.length, 1);
+  assert.strictEqual(groups[0].tag, null);
+});
+
+test('groupMarksByTag 空数据返回空数组', () => {
+  assert.deepStrictEqual(M.groupMarksByTag({}, { pages: {} }), []);
+});
