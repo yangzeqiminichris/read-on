@@ -102,8 +102,48 @@
     return domains;
   }
 
+  function isPageData(v) {
+    return v && Array.isArray(v.marks) && typeof v.pageKey === 'string';
+  }
+
+  function onlyPages(obj) {
+    const out = {};
+    for (const k in obj) if (isPageData(obj[k])) out[k] = obj[k];
+    return out;
+  }
+
+  function normalizeImport(parsed) {
+    if (!parsed || typeof parsed !== 'object') return null;
+    const src = (parsed.pages && typeof parsed.pages === 'object') ? parsed.pages : parsed;
+    const pages = onlyPages(src);
+    return Object.keys(pages).length ? pages : null;
+  }
+
+  function mergeImport(existingAll, importedPages) {
+    const out = {};
+    const existingPages = onlyPages(existingAll);
+    for (const k in existingPages) {
+      out[k] = { pageKey: existingPages[k].pageKey, nextSeq: existingPages[k].nextSeq, marks: existingPages[k].marks.slice() };
+    }
+    for (const k in importedPages) {
+      const imp = importedPages[k];
+      if (!isPageData(imp)) continue;
+      const cur = out[k] || { pageKey: imp.pageKey, nextSeq: 1, marks: [] };
+      const ids = {};
+      for (const m of cur.marks) ids[m.id] = true;
+      for (const m of imp.marks) if (!ids[m.id]) { cur.marks.push(m); ids[m.id] = true; }
+      cur.nextSeq = Math.max(cur.nextSeq || 1, imp.nextSeq || 1);
+      out[k] = cur;
+    }
+    return out;
+  }
+
+  function buildExport(allData, now) {
+    return { version: 1, exportedAt: now, pages: onlyPages(allData) };
+  }
+
   return {
     pageKeyFromURL, makeDefaultName, emptyPageData, createMark, removeMark, groupMarksByPage,
-    domainOf, groupMarksByDomain,
+    domainOf, groupMarksByDomain, normalizeImport, mergeImport, buildExport,
   };
 });
