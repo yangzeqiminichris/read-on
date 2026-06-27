@@ -326,6 +326,15 @@
       list.appendChild(groupHeadEl(g));
       for (const mark of g.marks) list.appendChild(allMarkRow(mark));
     }
+    const footer = document.createElement('li');
+    footer.className = 'manager-link';
+    const mgr = document.createElement('button');
+    mgr.className = 'link-btn';
+    mgr.appendChild(icons.el('list', 14));
+    mgr.appendChild(document.createTextNode('Open full manager'));
+    mgr.onclick = function () { browser.openOptionsPage(); };
+    footer.appendChild(mgr);
+    list.appendChild(footer);
   }
 
   function updateToggleUI() {
