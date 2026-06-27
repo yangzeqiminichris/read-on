@@ -205,7 +205,7 @@
         const flag = document.createElement('span');
         flag.className = 'name-note-flag';
         flag.title = 'Has note';
-        flag.appendChild(icons.el('square-pen', 12));
+        flag.appendChild(icons.el('align-left', 12));
         nameWrap.appendChild(flag);
       }
       top.appendChild(nameWrap);
@@ -291,7 +291,7 @@
     if (mark.note && mark.note.trim()) {
       const prev = document.createElement('div');
       prev.className = 'note-preview';
-      prev.appendChild(icons.el('square-pen', 12));
+      prev.appendChild(icons.el('align-left', 12));
       const txt = document.createElement('span');
       txt.textContent = mark.note.split('\n')[0];
       prev.appendChild(txt);

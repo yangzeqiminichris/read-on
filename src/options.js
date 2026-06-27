@@ -200,7 +200,7 @@
     if (hasNote && !expanded) {
       const prev = document.createElement('div');
       prev.className = 'note-preview';
-      prev.appendChild(icons.el('square-pen', 12));
+      prev.appendChild(icons.el('align-left', 12));
       const span = document.createElement('span');
       span.textContent = mark.note.split('\n')[0];
       prev.appendChild(span);
