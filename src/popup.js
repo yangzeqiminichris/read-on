@@ -7,7 +7,7 @@
   let pageMarkable = false;
   let view = 'page';
   const expandedIds = new Set();
-  const collapsedPages   = new Set();
+  const expandedPages = new Set();
 
   const UNREACHABLE_MSG = "Can't reach this page. Reload it and try again.";
 
@@ -294,7 +294,7 @@
   function pageHeadEl(g, aliases) {
     const li = document.createElement('li');
     li.className = 'page-head';
-    if (collapsedPages.has(g.pageKey)) li.classList.add('collapsed');
+    if (!expandedPages.has(g.pageKey)) li.classList.add('collapsed');
 
     const chevron = icons.el('chevron-down', 13);
     chevron.classList.add('page-chevron');
@@ -317,8 +317,8 @@
 
     li.onclick = async function (e) {
       if (e.target.closest('button')) return;
-      if (collapsedPages.has(g.pageKey)) collapsedPages.delete(g.pageKey);
-      else collapsedPages.add(g.pageKey);
+      if (expandedPages.has(g.pageKey)) expandedPages.delete(g.pageKey);
+      else expandedPages.add(g.pageKey);
       await render();
     };
     return li;
@@ -341,10 +341,10 @@
     empty.classList.toggle('hidden', pages.length > 0);
     for (const g of pages) {
       list.appendChild(pageHeadEl(g, aliases));
-      if (collapsedPages.has(g.pageKey)) {
-        list.appendChild(allMarkRow(g.recentMark, false));
-      } else {
+      if (expandedPages.has(g.pageKey)) {
         for (const mark of g.marks) list.appendChild(allMarkRow(mark));
+      } else {
+        list.appendChild(allMarkRow(g.recentMark, false));
       }
     }
   }
@@ -400,7 +400,7 @@
     document.getElementById('manager-btn').onclick = function () { browser.openOptionsPage(); };
     document.getElementById('all-btn').onclick = function () {
       view = (view === 'all') ? 'page' : 'all';
-      if (view === 'all') collapsedPages.clear();
+      if (view === 'all') expandedPages.clear();
       render();
     };
     const tab = await browser.getActiveTab();
