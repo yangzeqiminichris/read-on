@@ -1,5 +1,7 @@
 # ReadOn
 
+**Mark the spot. Note the thought. Read on.**
+
 Bookmark a scroll position on any page and pick up reading where you left off.
 
 ReadOn is a lightweight Chrome extension (Manifest V3) for people who read long

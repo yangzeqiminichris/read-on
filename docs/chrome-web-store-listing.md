@@ -13,8 +13,14 @@ Copy-paste source for the Web Store developer dashboard. Replace any
 
 > Bookmark your exact scroll position on any page and pick up reading right where you left off. Notes, tags, all local.
 
+## Tagline
+
+> Mark the spot. Note the thought. Read on.
+
 ## Detailed description
 
+> Mark the spot. Note the thought. Read on.
+>
 > Native bookmarks remember the page. ReadOn remembers the *spot*.
 >
 > ReadOn lets you bookmark the exact scroll position inside any web page — long
