@@ -182,8 +182,8 @@ console.log('source', src.w + 'x' + src.h, 'channels', src.channels);
 console.log('corners TL/TR/BL/BR:',
   corner(0, 0), corner(src.w - 1, 0), corner(0, src.h - 1), corner(src.w - 1, src.h - 1));
 
-// Trim the empty margin so the artwork fills the icon frame (8% breathing room).
-const crop = contentCrop(src, 0.08);
+// Trim the empty margin entirely so the artwork fills the icon frame edge to edge.
+const crop = contentCrop(src, 0);
 console.log('content crop:', crop, '(was ' + src.w + 'x' + src.h + ')');
 
 for (const sz of [16, 32, 48, 128]) {
