@@ -110,15 +110,48 @@ function decodePNG(buf) {
   return { w, h, channels, data: out };
 }
 
-// ── Box-average downscale → RGBA ───────────────────────────────────────────
+// ── Content crop — trim uniform background margin so art fills the frame ────
 
-function downscaleRGBA(src, size) {
+function contentCrop(src, padFrac) {
   const { w, h, channels, data } = src;
+  // Background = average of the four corners.
+  const corner = (x, y) => { const i = (y * w + x) * channels; return [data[i], data[i + 1], data[i + 2]]; };
+  const cs = [corner(0, 0), corner(w - 1, 0), corner(0, h - 1), corner(w - 1, h - 1)];
+  const bg = [0, 1, 2].map(k => Math.round(cs.reduce((s, c) => s + c[k], 0) / cs.length));
+  const THR = 14; // max per-channel diff to count as content
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * channels;
+      const d = Math.max(Math.abs(data[i] - bg[0]), Math.abs(data[i + 1] - bg[1]), Math.abs(data[i + 2] - bg[2]));
+      if (d > THR) {
+        if (x < minX) minX = x; if (x > maxX) maxX = x;
+        if (y < minY) minY = y; if (y > maxY) maxY = y;
+      }
+    }
+  }
+  if (maxX < 0) return { x: 0, y: 0, s: Math.min(w, h) }; // nothing found → no crop
+  // Square box centred on content bbox, plus padding, clamped to image.
+  const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+  let side = Math.max(maxX - minX + 1, maxY - minY + 1);
+  side = Math.round(side * (1 + padFrac * 2));
+  side = Math.min(side, w, h);
+  let x = Math.round(cx - side / 2), y = Math.round(cy - side / 2);
+  x = Math.max(0, Math.min(x, w - side));
+  y = Math.max(0, Math.min(y, h - side));
+  return { x, y, s: side };
+}
+
+// ── Box-average downscale of a square sub-region → RGBA ─────────────────────
+
+function downscaleRGBA(src, size, crop) {
+  const { w, channels, data } = src;
+  const cx = crop.x, cy = crop.y, cs = crop.s;
   const out = Buffer.alloc(size * size * 4);
   for (let ty = 0; ty < size; ty++) {
-    const sy0 = Math.floor(ty * h / size), sy1 = Math.max(sy0 + 1, Math.floor((ty + 1) * h / size));
+    const sy0 = cy + Math.floor(ty * cs / size), sy1 = cy + Math.max(Math.floor(ty * cs / size) + 1, Math.floor((ty + 1) * cs / size));
     for (let tx = 0; tx < size; tx++) {
-      const sx0 = Math.floor(tx * w / size), sx1 = Math.max(sx0 + 1, Math.floor((tx + 1) * w / size));
+      const sx0 = cx + Math.floor(tx * cs / size), sx1 = cx + Math.max(Math.floor(tx * cs / size) + 1, Math.floor((tx + 1) * cs / size));
       let r = 0, g = 0, b = 0, a = 0, n = 0;
       for (let sy = sy0; sy < sy1; sy++) {
         for (let sx = sx0; sx < sx1; sx++) {
@@ -149,8 +182,12 @@ console.log('source', src.w + 'x' + src.h, 'channels', src.channels);
 console.log('corners TL/TR/BL/BR:',
   corner(0, 0), corner(src.w - 1, 0), corner(0, src.h - 1), corner(src.w - 1, src.h - 1));
 
+// Trim the empty margin so the artwork fills the icon frame (8% breathing room).
+const crop = contentCrop(src, 0.08);
+console.log('content crop:', crop, '(was ' + src.w + 'x' + src.h + ')');
+
 for (const sz of [16, 32, 48, 128]) {
-  const px = downscaleRGBA(src, sz);
+  const px = downscaleRGBA(src, sz, crop);
   const path = join(__dir, `icon${sz}.png`);
   writeFileSync(path, makePNG(px, sz, sz));
   console.log(`✓ ${path}`);
