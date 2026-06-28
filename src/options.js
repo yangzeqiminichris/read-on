@@ -257,27 +257,98 @@
     return li;
   }
 
+  function hitFragment(text, q) {
+    const frag = document.createDocumentFragment();
+    const i = q ? text.toLowerCase().indexOf(q.toLowerCase()) : -1;
+    if (i === -1) { frag.appendChild(document.createTextNode(text)); return frag; }
+    frag.appendChild(document.createTextNode(text.slice(0, i)));
+    const hit = document.createElement('span');
+    hit.className = 'tag-opt-hit';
+    hit.textContent = text.slice(i, i + q.length);
+    frag.appendChild(hit);
+    frag.appendChild(document.createTextNode(text.slice(i + q.length)));
+    return frag;
+  }
+
   function showAddTagInput(wrap, addBtn, pageKey) {
     addBtn.classList.add('hidden');
+    const cur = (tagsData.pages && tagsData.pages[pageKey]) || [];
+    const pool = allTags.filter(function (t) { return cur.indexOf(t) === -1; });
+
+    const field = document.createElement('span');
+    field.className = 'tag-field';
     const input = document.createElement('input');
     input.className = 'tag-input';
-    input.setAttribute('list', 'tag-suggestions');
     input.placeholder = 'tag…';
+    const caret = document.createElement('span');
+    caret.className = 'tag-caret';
+    caret.appendChild(icons.el('chevron-down', 14));
+    field.appendChild(input);
+    field.appendChild(caret);
+    wrap.insertBefore(field, addBtn);
+
+    const menu = document.createElement('div');
+    menu.className = 'tag-menu hidden';
+    document.body.appendChild(menu);
+
+    let opts = [];
+    let active = -1;
     let done = false;
-    function commit(save) {
+
+    function position() {
+      const r = field.getBoundingClientRect();
+      menu.style.left = r.left + 'px';
+      menu.style.top = (r.bottom + 4) + 'px';
+      menu.style.minWidth = r.width + 'px';
+    }
+
+    function setActive(idx) {
+      const rows = menu.children;
+      if (active >= 0 && rows[active]) rows[active].classList.remove('active');
+      active = idx;
+      if (active >= 0 && rows[active]) rows[active].classList.add('active');
+    }
+
+    function renderMenu() {
+      const q = input.value.trim();
+      opts = pool.filter(function (t) { return t.toLowerCase().indexOf(q.toLowerCase()) !== -1; });
+      menu.innerHTML = '';
+      active = -1;
+      if (opts.length === 0) { menu.classList.add('hidden'); field.classList.remove('open'); return; }
+      opts.forEach(function (t, idx) {
+        const row = document.createElement('div');
+        row.className = 'tag-opt';
+        row.appendChild(hitFragment(t, q));
+        row.addEventListener('mousedown', function (e) { e.preventDefault(); finish(t, true); });
+        row.addEventListener('mousemove', function () { setActive(idx); });
+        menu.appendChild(row);
+      });
+      position();
+      menu.classList.remove('hidden');
+      field.classList.add('open');
+    }
+
+    function finish(value, save) {
       if (done) return;
       done = true;
-      const v = input.value.trim();
+      field.classList.remove('open');
+      menu.remove();
+      const v = (value != null ? value : input.value).trim();
       if (save && v) { storage.addPageTag(pageKey, v).then(reload); }
-      else { input.remove(); addBtn.classList.remove('hidden'); }
+      else { field.remove(); addBtn.classList.remove('hidden'); }
     }
+
+    input.addEventListener('input', renderMenu);
     input.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') commit(true);
-      else if (e.key === 'Escape') commit(false);
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (opts.length) setActive((active + 1) % opts.length); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); if (opts.length) setActive((active - 1 + opts.length) % opts.length); }
+      else if (e.key === 'Enter') { e.preventDefault(); finish(active >= 0 ? opts[active] : null, true); }
+      else if (e.key === 'Escape') { e.preventDefault(); finish(null, false); }
     });
-    input.addEventListener('blur', function () { commit(true); });
-    wrap.insertBefore(input, addBtn);
-    setTimeout(function () { input.focus(); }, 0);
+    input.addEventListener('blur', function () { finish(null, true); });
+    caret.addEventListener('mousedown', function (e) { e.preventDefault(); input.focus(); renderMenu(); });
+
+    setTimeout(function () { input.focus(); renderMenu(); }, 0);
   }
 
   function tagsControl(pageKey) {
@@ -468,7 +539,6 @@
     document.getElementById('collapse-expand-group').classList.toggle('hidden', searching || groups.length === 0);
     document.getElementById('view-domain-btn').classList.toggle('active', viewMode === 'domain');
     document.getElementById('view-tag-btn').classList.toggle('active', viewMode === 'tag');
-    refreshTagSuggestions();
     for (const g of groups) {
       const collapsedSet = viewMode === 'tag' ? collapsedTags : collapsedDomains;
       const headKey = viewMode === 'tag' ? tagKey(g.tag) : g.domain;
@@ -482,15 +552,6 @@
     }
   }
 
-  function refreshTagSuggestions() {
-    const dl = document.getElementById('tag-suggestions');
-    dl.innerHTML = '';
-    for (const t of allTags) {
-      const opt = document.createElement('option');
-      opt.value = t;
-      dl.appendChild(opt);
-    }
-  }
 
   function download(filename, text) {
     const blob = new Blob([text], { type: 'application/json' });
