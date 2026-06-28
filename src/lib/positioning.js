@@ -51,7 +51,7 @@
 
   // 文字锚点只用于在比例目标"附近"精确定位（设计：比例给大概区域，锚点小范围纠正）。
   // 若最近的锚点离比例目标超过 maxDistance（页面大改 / 抓到了无关的固定元素），
-  // 就放弃锚点、退回纯比例目标——最坏不比 MSP 差。
+  // 就放弃锚点、退回纯比例目标——保证最坏情况不差于纯比例定位。
   function refineTargetWithAnchors(ratioTarget, anchorOffsets, maxDistance) {
     const nearest = pickNearestAnchor(anchorOffsets, ratioTarget);
     if (nearest == null) return ratioTarget;
