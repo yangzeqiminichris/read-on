@@ -5,7 +5,7 @@
 //   node src/icons/gen-icons-from-source.mjs [sourcePath]
 //
 import { deflateSync, inflateSync } from 'zlib';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -192,3 +192,10 @@ for (const sz of [16, 32, 48, 128]) {
   writeFileSync(path, makePNG(px, sz, sz));
   console.log(`✓ ${path}`);
 }
+
+// Store logo (Edge Add-ons requires 300×300) — not part of the extension package.
+const assetsDir = join(__dir, '..', '..', 'docs', 'store-assets');
+mkdirSync(assetsDir, { recursive: true });
+const logoPath = join(assetsDir, 'store-logo-300.png');
+writeFileSync(logoPath, makePNG(downscaleRGBA(src, 300, crop), 300, 300));
+console.log(`✓ ${logoPath}`);
