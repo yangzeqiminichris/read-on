@@ -194,8 +194,15 @@ for (const sz of [16, 32, 48, 128]) {
 }
 
 // Store logo (Edge Add-ons requires 300×300) — not part of the extension package.
+// Zoom in past the content bbox so the artwork fills the frame with no margin.
+function tighten(c, factor) {
+  const ns = Math.round(c.s * factor);
+  const cx = c.x + c.s / 2, cy = c.y + c.s / 2;
+  return { x: Math.round(cx - ns / 2), y: Math.round(cy - ns / 2), s: ns };
+}
 const assetsDir = join(__dir, '..', '..', 'docs', 'store-assets');
 mkdirSync(assetsDir, { recursive: true });
 const logoPath = join(assetsDir, 'store-logo-300.png');
-writeFileSync(logoPath, makePNG(downscaleRGBA(src, 300, crop), 300, 300));
+const logoCrop = tighten(crop, 0.84);
+writeFileSync(logoPath, makePNG(downscaleRGBA(src, 300, logoCrop), 300, 300));
 console.log(`✓ ${logoPath}`);
