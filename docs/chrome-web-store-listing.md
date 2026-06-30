@@ -64,11 +64,13 @@ Copy-paste source for the Web Store developer dashboard. Replace any
 - Does this item collect user data? **No data is collected or transmitted.**
 - Sold to third parties: **No.**
 - Used for purposes unrelated to core functionality: **No.**
-- Privacy policy URL: `<host PRIVACY.md and paste the URL>`
+- Privacy policy URL: `https://github.com/yangzeqiminichris/read-on/blob/master/PRIVACY.md`
 
 ## Assets to upload
 
-- Store icon: 128×128 — `src/icons/icon128.png` (already in repo).
+- Store icon: **not uploaded separately on Chrome** — the Web Store pulls the
+  128×128 icon (`src/icons/icon128.png`) straight from the uploaded package.
+  (The 300×300 `docs/store-assets/store-logo-300.png` is for Edge only.)
 - Screenshots: 1280×800 (or 640×400), 1–5 images. Suggested shots:
   1. Popup after marking a page (progress bar + mark row).
   2. "All marks" grouped view.
@@ -82,5 +84,7 @@ Copy-paste source for the Web Store developer dashboard. Replace any
 - A privacy policy URL is required because the extension stores user-entered
   data (even though it never leaves the device). Host `PRIVACY.md` somewhere
   public (e.g. GitHub repo file or GitHub Pages) and paste that URL.
-- First review typically takes a few business days; broad host access
-  (`http/https`) may add scrutiny — the justification above covers it.
+- Review time: often within 24 hours for simple extensions, but the broad host
+  access (`http/https`) plus `tabs` triggers stricter manual review, so expect a
+  few business days and up to 1–2 weeks in the worst case. The per-permission
+  justifications above are written to minimize the chance of a rejection.
